@@ -1,8 +1,8 @@
 
 --==================================================
--- VULITQPHUB V1.3
+-- VULITQPHUB V1.4
 -- by sarry_fixe
--- Delta Android | UI ONLY
+-- Delta Android
 --==================================================
 
 local Players = game:GetService("Players")
@@ -11,11 +11,15 @@ local UIS = game:GetService("UserInputService")
 local Player = Players.LocalPlayer
 local PG = Player:WaitForChild("PlayerGui")
 
-local PURPLE = Color3.fromRGB(135,45,205)
-local DARK = Color3.fromRGB(13,12,18)
-local PANEL = Color3.fromRGB(23,21,29)
-local WHITE = Color3.fromRGB(245,240,255)
-local GRAY = Color3.fromRGB(165,160,175)
+local C = {
+    Background = Color3.fromRGB(13,12,18),
+    Panel = Color3.fromRGB(23,21,29),
+    Button = Color3.fromRGB(29,27,36),
+    Purple = Color3.fromRGB(115,40,170),
+    Selected = Color3.fromRGB(68,27,105),
+    White = Color3.fromRGB(245,242,250),
+    Gray = Color3.fromRGB(155,150,165)
+}
 
 pcall(function()
     local old = PG:FindFirstChild("VulitqpHUB")
@@ -30,7 +34,7 @@ GUI.DisplayOrder = 999
 GUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 GUI.Parent = PG
 
-local function New(class,props,parent)
+local function Create(class, props, parent)
     local obj = Instance.new(class)
     for k,v in pairs(props) do
         obj[k] = v
@@ -39,364 +43,344 @@ local function New(class,props,parent)
     return obj
 end
 
-local function Round(obj,r)
-    New("UICorner",{
-        CornerRadius = UDim.new(0,r)
+local function Corner(obj, radius)
+    Create("UICorner", {
+        CornerRadius = UDim.new(0,radius)
     },obj)
 end
 
-local function Stroke(obj)
-    New("UIStroke",{
-        Color = PURPLE,
-        Thickness = 1.2,
-        Transparency = 0.2
+local function Outline(obj)
+    Create("UIStroke", {
+        Color = C.Purple,
+        Thickness = 1.3,
+        Transparency = 0.1
     },obj)
 end
 
--- MAIN
-local Main = New("Frame",{
+-- MAIN WINDOW
+local Main = Create("Frame",{
     Name = "Main",
     AnchorPoint = Vector2.new(0.5,0.5),
     Position = UDim2.fromScale(0.5,0.5),
     Size = UDim2.fromScale(0.62,0.72),
-    BackgroundColor3 = DARK,
+    BackgroundColor3 = C.Background,
     BorderSizePixel = 0,
     ClipsDescendants = true,
     ZIndex = 1
 },GUI)
 
-Round(Main,14)
-Stroke(Main)
+Corner(Main,15)
+Outline(Main)
 
 -- HEADER
-local Header = New("Frame",{
+local Header = Create("Frame",{
     Name = "Header",
     Size = UDim2.new(1,0,0,55),
-    BackgroundColor3 = PANEL,
+    BackgroundColor3 = C.Panel,
     BorderSizePixel = 0,
-    ZIndex = 10
+    ZIndex = 10,
+    ClipsDescendants = true
 },Main)
 
-Round(Header,14)
-
 -- LOGO
-New("TextLabel",{
+Create("TextLabel",{
     Position = UDim2.new(0,10,0,5),
-    Size = UDim2.new(0,35,0,43),
+    Size = UDim2.new(0,32,0,42),
     BackgroundTransparency = 1,
     Text = "🍉",
-    TextSize = 24,
+    TextSize = 23,
     ZIndex = 12
 },Header)
 
--- HUB NAME
-New("TextLabel",{
-    Position = UDim2.new(0,50,0,5),
-    Size = UDim2.new(0,180,0,25),
+-- NAME
+Create("TextLabel",{
+    Position = UDim2.new(0,47,0,5),
+    Size = UDim2.new(0,180,0,24),
     BackgroundTransparency = 1,
     Text = "VulitqpHUB",
-    TextColor3 = WHITE,
-    TextSize = 17,
+    TextColor3 = C.White,
+    TextSize = 16,
     Font = Enum.Font.GothamBold,
     TextXAlignment = Enum.TextXAlignment.Left,
     ZIndex = 12
 },Header)
 
 -- AUTHOR
-New("TextLabel",{
-    Position = UDim2.new(0,51,0,29),
+Create("TextLabel",{
+    Position = UDim2.new(0,48,0,28),
     Size = UDim2.new(0,150,0,17),
     BackgroundTransparency = 1,
     Text = "@sarry_fixe",
-    TextColor3 = GRAY,
-    TextSize = 11,
+    TextColor3 = C.Gray,
+    TextSize = 10,
     Font = Enum.Font.Gotham,
     TextXAlignment = Enum.TextXAlignment.Left,
     ZIndex = 12
 },Header)
 
--- MINIMIZE BUTTON
-local Min = New("TextButton",{
-    Name = "Minimize",
-    AnchorPoint = Vector2.new(1,0),
-    Position = UDim2.new(1,-48,0,10),
-    Size = UDim2.new(0,31,0,32),
-    BackgroundColor3 = DARK,
+-- MINIMIZE
+local Min = Create("TextButton",{
+    Position = UDim2.new(1,-84,0,10),
+    Size = UDim2.new(0,32,0,32),
+    BackgroundColor3 = C.Background,
     Text = "—",
-    TextColor3 = WHITE,
+    TextColor3 = C.White,
+    TextSize = 18,
+    Font = Enum.Font.GothamBold,
+    ZIndex = 15
+},Header)
+Corner(Min,8)
+
+-- CLOSE
+local Close = Create("TextButton",{
+    Position = UDim2.new(1,-44,0,10),
+    Size = UDim2.new(0,32,0,32),
+    BackgroundColor3 = C.Background,
+    Text = "×",
+    TextColor3 = C.White,
     TextSize = 19,
     Font = Enum.Font.GothamBold,
     ZIndex = 15
 },Header)
-Round(Min,8)
-
--- CLOSE BUTTON
-local Close = New("TextButton",{
-    Name = "Close",
-    AnchorPoint = Vector2.new(1,0),
-    Position = UDim2.new(1,-9,0,10),
-    Size = UDim2.new(0,31,0,32),
-    BackgroundColor3 = DARK,
-    Text = "×",
-    TextColor3 = WHITE,
-    TextSize = 20,
-    Font = Enum.Font.GothamBold,
-    ZIndex = 15
-},Header)
-Round(Close,8)
+Corner(Close,8)
 
 -- BODY
-local Body = New("Frame",{
+local Body = Create("Frame",{
     Name = "Body",
     Position = UDim2.new(0,0,0,55),
     Size = UDim2.new(1,0,1,-55),
     BackgroundTransparency = 1,
+    BorderSizePixel = 0,
     ZIndex = 2
 },Main)
 
 -- SIDEBAR
-local Sidebar = New("ScrollingFrame",{
+local Sidebar = Create("ScrollingFrame",{
     Name = "Sidebar",
+    Position = UDim2.new(0,0,0,0),
     Size = UDim2.new(0.29,0,1,0),
-    BackgroundColor3 = Color3.fromRGB(12,11,17),
+    BackgroundColor3 = C.Background,
     BorderSizePixel = 0,
     ScrollBarThickness = 2,
-    ScrollBarImageColor3 = PURPLE,
-    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+    ScrollBarImageColor3 = C.Purple,
     CanvasSize = UDim2.new(0,0,0,0),
+    AutomaticCanvasSize = Enum.AutomaticSize.Y,
     ClipsDescendants = true,
     ZIndex = 3
 },Body)
 
-New("UIPadding",{
-    PaddingTop = UDim.new(0,14),
-    PaddingBottom = UDim.new(0,14)
+Create("UIPadding",{
+    PaddingTop = UDim.new(0,13),
+    PaddingBottom = UDim.new(0,12)
 },Sidebar)
 
-local SideLayout = New("UIListLayout",{
+Create("UIListLayout",{
     Padding = UDim.new(0,9),
-    HorizontalAlignment = Enum.HorizontalAlignment.Center,
-    SortOrder = Enum.SortOrder.LayoutOrder
-},Sidebar)
-
-New("Frame",{
-    Position = UDim2.new(1,-1,0,0),
-    Size = UDim2.new(0,1,1,0),
-    BackgroundColor3 = PURPLE,
-    BorderSizePixel = 0,
-    ZIndex = 4
+    SortOrder = Enum.SortOrder.LayoutOrder,
+    HorizontalAlignment = Enum.HorizontalAlignment.Center
 },Sidebar)
 
 -- CONTENT
-local Content = New("ScrollingFrame",{
+local Content = Create("ScrollingFrame",{
     Name = "Content",
     Position = UDim2.new(0.29,0,0,0),
     Size = UDim2.new(0.71,0,1,0),
     BackgroundTransparency = 1,
     BorderSizePixel = 0,
     ScrollBarThickness = 2,
-    ScrollBarImageColor3 = PURPLE,
-    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+    ScrollBarImageColor3 = C.Purple,
     CanvasSize = UDim2.new(0,0,0,0),
+    AutomaticCanvasSize = Enum.AutomaticSize.Y,
     ClipsDescendants = true,
     ZIndex = 3
 },Body)
 
-New("UIPadding",{
+Create("UIPadding",{
     PaddingLeft = UDim.new(0,12),
     PaddingRight = UDim.new(0,12),
     PaddingTop = UDim.new(0,12),
-    PaddingBottom = UDim.new(0,15)
+    PaddingBottom = UDim.new(0,14)
 },Content)
 
-New("UIListLayout",{
+Create("UIListLayout",{
     Padding = UDim.new(0,12),
     SortOrder = Enum.SortOrder.LayoutOrder
 },Content)
 
 -- TITLE
-local Heading = New("TextLabel",{
+local Title = Create("TextLabel",{
     Size = UDim2.new(1,0,0,34),
     BackgroundTransparency = 1,
     Text = "Trang chủ",
-    TextColor3 = WHITE,
+    TextColor3 = C.White,
     TextSize = 19,
     Font = Enum.Font.GothamBold,
     TextXAlignment = Enum.TextXAlignment.Left,
     LayoutOrder = 1
 },Content)
 
--- HOME
-local Home = New("Frame",{
+-- HOME CARD
+local Home = Create("Frame",{
     Size = UDim2.new(1,0,0,190),
-    BackgroundColor3 = PANEL,
+    BackgroundColor3 = C.Panel,
     BorderSizePixel = 0,
     LayoutOrder = 2
 },Content)
 
-Round(Home,12)
-Stroke(Home)
+Corner(Home,12)
+Outline(Home)
 
-New("TextLabel",{
+Create("TextLabel",{
     Position = UDim2.new(0.05,0,0,12),
     Size = UDim2.new(0.9,0,0,42),
     BackgroundTransparency = 1,
     Text = "Script do người Việt Nam làm nên hơn lỗi nha",
-    TextColor3 = WHITE,
+    TextColor3 = C.White,
     TextSize = 11,
     TextWrapped = true,
     Font = Enum.Font.GothamMedium
 },Home)
 
-New("TextLabel",{
+Create("TextLabel",{
     Position = UDim2.new(0.05,0,0,60),
     Size = UDim2.new(0.9,0,0,23),
     BackgroundTransparency = 1,
     Text = "Join dis để xem update script",
-    TextColor3 = GRAY,
-    TextSize = 11
+    TextColor3 = C.Gray,
+    TextSize = 11,
+    Font = Enum.Font.Gotham
 },Home)
 
-New("TextLabel",{
+Create("TextLabel",{
     Position = UDim2.new(0.05,0,0,91),
     Size = UDim2.new(0.9,0,0,23),
     BackgroundTransparency = 1,
     Text = "Join discord me ❤️",
-    TextColor3 = WHITE,
+    TextColor3 = C.White,
     TextSize = 12,
     Font = Enum.Font.GothamBold
 },Home)
 
-local Link = New("TextButton",{
+local Link = Create("TextButton",{
     Position = UDim2.new(0.05,0,0,132),
     Size = UDim2.new(0.9,0,0,38),
     BackgroundColor3 = Color3.fromRGB(43,22,61),
     Text = "Copy Discord Link",
-    TextColor3 = WHITE,
+    TextColor3 = C.White,
     TextSize = 11,
     Font = Enum.Font.GothamBold
 },Home)
-Round(Link,9)
+Corner(Link,9)
 
 Link.MouseButton1Click:Connect(function()
     if typeof(setclipboard) == "function" then
         setclipboard("https://discord.gg/6cRkHcNTC")
         Link.Text = "Copied!"
     else
-        Link.Text = "6cRkHcNTC"
+        Link.Text = "discord.gg/6cRkHcNTC"
     end
 end)
 
--- OTHER PAGES
-local Page = New("Frame",{
+-- OTHER PAGE
+local Page = Create("Frame",{
     Size = UDim2.new(1,0,0,100),
-    BackgroundColor3 = PANEL,
+    BackgroundColor3 = C.Panel,
     BorderSizePixel = 0,
     LayoutOrder = 2,
     Visible = false
 },Content)
-Round(Page,12)
-Stroke(Page)
 
-local PageText = New("TextLabel",{
+Corner(Page,12)
+Outline(Page)
+
+local PageText = Create("TextLabel",{
     Position = UDim2.new(0,10,0,10),
     Size = UDim2.new(1,-20,1,-20),
     BackgroundTransparency = 1,
     Text = "Chức năng đang được cập nhật",
-    TextColor3 = GRAY,
+    TextColor3 = C.Gray,
     TextSize = 12,
     TextWrapped = true
 },Page)
 
 -- TABS
-local Tabs = {
+local TabNames = {
     "Trang chủ",
     "Chức năng 1",
     "Chức năng 2",
     "Cài đặt"
 }
 
-local Buttons = {}
+local TabButtons = {}
 
-for i,name in ipairs(Tabs) do
-    local B = New("TextButton",{
+for i,name in ipairs(TabNames) do
+    local Button = Create("TextButton",{
         Size = UDim2.new(0.88,0,0,37),
-        BackgroundColor3 = i == 1
-            and Color3.fromRGB(70,25,110)
-            or PANEL,
+        BackgroundColor3 = i == 1 and C.Selected or C.Button,
         Text = name,
-        TextColor3 = WHITE,
+        TextColor3 = C.White,
         TextSize = 10,
         Font = Enum.Font.GothamMedium,
         LayoutOrder = i,
         ZIndex = 5
     },Sidebar)
 
-    Round(B,9)
-    Buttons[i] = B
+    Corner(Button,9)
+    TabButtons[i] = Button
 
-    B.MouseButton1Click:Connect(function()
-        Heading.Text = name
+    Button.MouseButton1Click:Connect(function()
+        Title.Text = name
         Home.Visible = i == 1
         Page.Visible = i ~= 1
 
-        if i ~= 1 then
-            PageText.Text = name ..
-                "\n\nChức năng đang được cập nhật"
-        end
-
-        for j,button in ipairs(Buttons) do
-            button.BackgroundColor3 = j == i
-                and Color3.fromRGB(70,25,110)
-                or PANEL
-        end
+        PageText.Text = name ..
+            "\n\nChức năng đang được cập nhật"
 
         Content.CanvasPosition = Vector2.new(0,0)
+
+        for j,b in ipairs(TabButtons) do
+            b.BackgroundColor3 =
+                j == i and C.Selected or C.Button
+        end
     end)
 end
 
--- REOPEN BUTTON
-local Reopen = New("TextButton",{
+-- REOPEN
+local Reopen = Create("TextButton",{
     Name = "Reopen",
     AnchorPoint = Vector2.new(0.5,0.5),
-    Position = UDim2.fromScale(0.5,0.1),
-    Size = UDim2.new(0,110,0,38),
-    BackgroundColor3 = DARK,
+    Position = UDim2.fromScale(0.5,0.12),
+    Size = UDim2.new(0,120,0,38),
+    BackgroundColor3 = C.Background,
     Text = "VulitqpHUB",
-    TextColor3 = WHITE,
+    TextColor3 = C.White,
     TextSize = 13,
     Font = Enum.Font.GothamBold,
     Visible = false,
     ZIndex = 30
 },GUI)
-Round(Reopen,10)
-Stroke(Reopen)
 
--- MINIMIZE
-local minimized = false
+Corner(Reopen,10)
+Outline(Reopen)
 
 Min.MouseButton1Click:Connect(function()
-    minimized = true
     Main.Visible = false
     Reopen.Visible = true
 end)
 
 Reopen.MouseButton1Click:Connect(function()
-    minimized = false
     Main.Visible = true
     Reopen.Visible = false
 end)
 
--- CLOSE
 Close.MouseButton1Click:Connect(function()
     GUI:Destroy()
 end)
 
--- DRAG HEADER
+-- DRAG
 local dragging = false
 local dragStart
 local startPos
-local activeInput
 
 Header.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.Touch
@@ -407,16 +391,13 @@ Header.InputBegan:Connect(function(input)
     end
 end)
 
-Header.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.Touch
-    or input.UserInputType == Enum.UserInputType.MouseMovement then
-        activeInput = input
-    end
-end)
-
 UIS.InputChanged:Connect(function(input)
-    if dragging and input == activeInput then
+    if dragging and (
+        input.UserInputType == Enum.UserInputType.Touch
+        or input.UserInputType == Enum.UserInputType.MouseMovement
+    ) then
         local delta = input.Position - dragStart
+
         Main.Position = UDim2.new(
             startPos.X.Scale,
             startPos.X.Offset + delta.X,
@@ -433,4 +414,4 @@ UIS.InputEnded:Connect(function(input)
     end
 end)
 
-print("VulitqpHUB V1.3 loaded!")
+print("VulitqpHUB V1.4 loaded!")
