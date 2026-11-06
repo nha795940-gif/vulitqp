@@ -1,6 +1,6 @@
 
 --==================================================
--- VULITQPHUB V1.8 FULL
+-- VULITQPHUB V1.9 FULL UI
 -- by sarry_fixe
 -- INTRO + LOADING + KEY SYSTEM + GET KEY + MENU
 --==================================================
@@ -27,13 +27,15 @@ local C = {
     RED = Color3.fromRGB(220,65,75)
 }
 
--- REMOVE OLD GUI
 pcall(function()
     local old = PG:FindFirstChild("VulitqpHUB")
     if old then old:Destroy() end
 end)
 
+--==================================================
 -- HELPERS
+--==================================================
+
 local function New(class, props, parent)
     local obj = Instance.new(class)
     for k,v in pairs(props) do
@@ -96,14 +98,12 @@ local Intro = New("Frame",{
 Corner(Intro,100)
 Stroke(Intro)
 
--- DOT ZOOM
 Tween(Intro,0.85,{
     Size = UDim2.fromScale(0.72,0.30)
 }).Completed:Wait()
 
 Corner(Intro,15)
 
--- INTRO TITLE
 New("TextLabel",{
     Position = UDim2.new(0,0,0.12,0),
     Size = UDim2.new(1,0,0,32),
@@ -125,7 +125,6 @@ New("TextLabel",{
     ZIndex = 102
 },Intro)
 
--- LOADING BACKGROUND
 local BarBG = New("Frame",{
     Position = UDim2.new(0.12,0,0.69,0),
     Size = UDim2.new(0.76,0,0,7),
@@ -155,7 +154,7 @@ local Percent = New("TextLabel",{
     ZIndex = 102
 },Intro)
 
--- LOADING 1% -> 100%
+-- LOADING 1-100
 for i = 1,100 do
     Percent.Text = "Loading... "..i.."%"
 
@@ -173,110 +172,98 @@ task.wait(0.4)
 --==================================================
 
 Intro:ClearAllChildren()
-
--- WIDER KEY FRAME
-Intro.Size = UDim2.fromScale(0.78,0.40)
+Intro.Size = UDim2.fromScale(0.84,0.46)
 Intro.BackgroundTransparency = 0
 Intro.BackgroundColor3 = C.PANEL
 
-Corner(Intro,15)
+Corner(Intro,17)
 Stroke(Intro)
 
--- KEY TITLE
 New("TextLabel",{
     Position = UDim2.new(0,0,0.07,0),
-    Size = UDim2.new(1,0,0,30),
+    Size = UDim2.new(1,0,0,34),
     BackgroundTransparency = 1,
     Text = "VulitqpHUB",
     TextColor3 = C.WHITE,
-    TextSize = 20,
+    TextSize = 21,
     Font = Enum.Font.GothamBold
 },Intro)
 
--- DESCRIPTION
 New("TextLabel",{
-    Position = UDim2.new(0,0,0.23,0),
-    Size = UDim2.new(1,0,0,20),
+    Position = UDim2.new(0,0,0.22,0),
+    Size = UDim2.new(1,0,0,22),
     BackgroundTransparency = 1,
     Text = "Enter your key to continue",
     TextColor3 = C.GRAY,
-    TextSize = 11
+    TextSize = 12
 },Intro)
 
--- KEY INPUT
 local KeyBox = New("TextBox",{
-    Position = UDim2.new(0.07,0,0.40,0),
-    Size = UDim2.new(0.86,0,0,38),
+    Position = UDim2.new(0.07,0,0.39,0),
+    Size = UDim2.new(0.86,0,0,42),
     BackgroundColor3 = C.BUTTON,
     Text = "",
     PlaceholderText = "Enter Key...",
     PlaceholderColor3 = C.GRAY,
     TextColor3 = C.WHITE,
-    TextSize = 12,
+    TextSize = 13,
     Font = Enum.Font.Gotham,
     ClearTextOnFocus = false
 },Intro)
 
-Corner(KeyBox,8)
+Corner(KeyBox,9)
 Stroke(KeyBox)
 
--- GET KEY BUTTON
 local GetKey = New("TextButton",{
-    Position = UDim2.new(0.07,0,0.63,0),
-    Size = UDim2.new(0.415,0,0,36),
+    Position = UDim2.new(0.07,0,0.62,0),
+    Size = UDim2.new(0.405,0,0,40),
     BackgroundColor3 = C.BUTTON,
     Text = "GET KEY",
     TextColor3 = C.WHITE,
-    TextSize = 12,
+    TextSize = 13,
     Font = Enum.Font.GothamBold
 },Intro)
 
-Corner(GetKey,8)
+Corner(GetKey,9)
 Stroke(GetKey)
 
--- VERIFY BUTTON
 local Verify = New("TextButton",{
-    Position = UDim2.new(0.515,0,0.63,0),
-    Size = UDim2.new(0.415,0,0,36),
+    Position = UDim2.new(0.525,0,0.62,0),
+    Size = UDim2.new(0.405,0,0,40),
     BackgroundColor3 = C.SELECTED,
-    Text = "VERIFY KEY",
+    Text = "VERIFY",
     TextColor3 = C.WHITE,
-    TextSize = 12,
+    TextSize = 13,
     Font = Enum.Font.GothamBold
 },Intro)
 
-Corner(Verify,8)
+Corner(Verify,9)
 
--- STATUS
 local KeyStatus = New("TextLabel",{
     Position = UDim2.new(0.05,0,0.83,0),
     Size = UDim2.new(0.90,0,0,20),
     BackgroundTransparency = 1,
     Text = "",
     TextColor3 = C.RED,
-    TextSize = 10,
+    TextSize = 11,
     Font = Enum.Font.Gotham
 },Intro)
 
--- GET KEY ACTION
+-- GET KEY
 GetKey.MouseButton1Click:Connect(function()
-
     if typeof(setclipboard) == "function" then
-
         local success = pcall(function()
             setclipboard(GET_KEY_LINK)
         end)
 
         if success then
             GetKey.Text = "COPIED!"
-            KeyStatus.TextColor3 =
-                Color3.fromRGB(80,220,130)
+            KeyStatus.TextColor3 = Color3.fromRGB(80,220,130)
             KeyStatus.Text = "Link copied successfully!"
         else
             KeyStatus.TextColor3 = C.RED
             KeyStatus.Text = "Copy failed!"
         end
-
     else
         KeyStatus.TextColor3 = C.RED
         KeyStatus.Text = "Clipboard not supported!"
@@ -294,7 +281,7 @@ local Main = New("Frame",{
     Name = "Main",
     AnchorPoint = Vector2.new(0.5,0.5),
     Position = UDim2.fromScale(0.5,0.5),
-    Size = UDim2.fromScale(0.78,0.72),
+    Size = UDim2.fromScale(0.86,0.80),
     BackgroundColor3 = C.BG,
     BorderSizePixel = 0,
     ClipsDescendants = true,
@@ -302,41 +289,41 @@ local Main = New("Frame",{
     ZIndex = 1
 },GUI)
 
-Corner(Main,15)
+Corner(Main,17)
 Stroke(Main)
 
 -- HEADER
 local Header = New("Frame",{
     Name = "Header",
-    Size = UDim2.new(1,0,0,52),
+    Size = UDim2.new(1,0,0,56),
     BackgroundColor3 = C.PANEL,
     BorderSizePixel = 0,
     ZIndex = 5
 },Main)
 
 New("TextLabel",{
-    Position = UDim2.new(0,12,0,5),
-    Size = UDim2.new(0,30,0,40),
+    Position = UDim2.new(0,14,0,7),
+    Size = UDim2.new(0,32,0,40),
     BackgroundTransparency = 1,
     Text = "🍉",
-    TextSize = 23,
+    TextSize = 25,
     ZIndex = 7
 },Header)
 
 New("TextLabel",{
-    Position = UDim2.new(0,47,0,5),
-    Size = UDim2.new(0,180,0,23),
+    Position = UDim2.new(0,52,0,5),
+    Size = UDim2.new(0,180,0,25),
     BackgroundTransparency = 1,
     Text = "VulitqpHUB",
     TextColor3 = C.WHITE,
-    TextSize = 16,
+    TextSize = 17,
     Font = Enum.Font.GothamBold,
     TextXAlignment = Enum.TextXAlignment.Left,
     ZIndex = 7
 },Header)
 
 New("TextLabel",{
-    Position = UDim2.new(0,48,0,27),
+    Position = UDim2.new(0,53,0,29),
     Size = UDim2.new(0,140,0,17),
     BackgroundTransparency = 1,
     Text = "@sarry_fixe",
@@ -346,36 +333,32 @@ New("TextLabel",{
     ZIndex = 7
 },Header)
 
--- MINIMIZE
 local Min = New("TextButton",{
-    Position = UDim2.new(1,-82,0,9),
-    Size = UDim2.new(0,32,0,32),
+    Position = UDim2.new(1,-88,0,11),
+    Size = UDim2.new(0,34,0,34),
     BackgroundColor3 = C.BG,
     Text = "—",
     TextColor3 = C.WHITE,
     TextSize = 18,
     ZIndex = 8
 },Header)
-
 Corner(Min,8)
 
--- CLOSE
 local Close = New("TextButton",{
-    Position = UDim2.new(1,-42,0,9),
-    Size = UDim2.new(0,32,0,32),
+    Position = UDim2.new(1,-46,0,11),
+    Size = UDim2.new(0,34,0,34),
     BackgroundColor3 = C.BG,
     Text = "×",
     TextColor3 = C.WHITE,
-    TextSize = 19,
+    TextSize = 20,
     ZIndex = 8
 },Header)
-
 Corner(Close,8)
 
 -- BODY
 local Body = New("Frame",{
-    Position = UDim2.new(0,0,0,52),
-    Size = UDim2.new(1,0,1,-52),
+    Position = UDim2.new(0,0,0,56),
+    Size = UDim2.new(1,0,1,-56),
     BackgroundTransparency = 1,
     ClipsDescendants = true,
     ZIndex = 2
@@ -384,7 +367,7 @@ local Body = New("Frame",{
 -- SIDEBAR
 local Sidebar = New("ScrollingFrame",{
     Name = "Sidebar",
-    Size = UDim2.new(0.29,0,1,0),
+    Size = UDim2.new(0.27,0,1,0),
     BackgroundColor3 = C.BG,
     BorderSizePixel = 0,
     ScrollBarThickness = 0,
@@ -395,12 +378,12 @@ local Sidebar = New("ScrollingFrame",{
 },Body)
 
 New("UIPadding",{
-    PaddingTop = UDim.new(0,12),
-    PaddingBottom = UDim.new(0,10)
+    PaddingTop = UDim.new(0,15),
+    PaddingBottom = UDim.new(0,14)
 },Sidebar)
 
 New("UIListLayout",{
-    Padding = UDim.new(0,8),
+    Padding = UDim.new(0,11),
     SortOrder = Enum.SortOrder.LayoutOrder,
     HorizontalAlignment = Enum.HorizontalAlignment.Center
 },Sidebar)
@@ -408,7 +391,7 @@ New("UIListLayout",{
 -- DIVIDER
 New("Frame",{
     Name = "Divider",
-    Position = UDim2.new(0.29,0,0,0),
+    Position = UDim2.new(0.27,0,0,0),
     Size = UDim2.new(0,1,1,0),
     BackgroundColor3 = C.PURPLE,
     BorderSizePixel = 0,
@@ -418,11 +401,11 @@ New("Frame",{
 -- CONTENT
 local Content = New("ScrollingFrame",{
     Name = "Content",
-    Position = UDim2.new(0.29,1,0,0),
-    Size = UDim2.new(0.71,-1,1,0),
+    Position = UDim2.new(0.27,1,0,0),
+    Size = UDim2.new(0.73,-1,1,0),
     BackgroundTransparency = 1,
     BorderSizePixel = 0,
-    ScrollBarThickness = 2,
+    ScrollBarThickness = 3,
     ScrollBarImageColor3 = C.PURPLE,
     AutomaticCanvasSize = Enum.AutomaticSize.Y,
     CanvasSize = UDim2.new(0,0,0,0),
@@ -430,24 +413,24 @@ local Content = New("ScrollingFrame",{
 },Body)
 
 New("UIPadding",{
-    PaddingLeft = UDim.new(0,12),
-    PaddingRight = UDim.new(0,12),
-    PaddingTop = UDim.new(0,12),
-    PaddingBottom = UDim.new(0,12)
+    PaddingLeft = UDim.new(0,16),
+    PaddingRight = UDim.new(0,16),
+    PaddingTop = UDim.new(0,16),
+    PaddingBottom = UDim.new(0,16)
 },Content)
 
 New("UIListLayout",{
-    Padding = UDim.new(0,12),
+    Padding = UDim.new(0,15),
     SortOrder = Enum.SortOrder.LayoutOrder
 },Content)
 
 -- PAGE TITLE
 local Title = New("TextLabel",{
-    Size = UDim2.new(1,0,0,32),
+    Size = UDim2.new(1,0,0,36),
     BackgroundTransparency = 1,
     Text = "Trang chủ",
     TextColor3 = C.WHITE,
-    TextSize = 19,
+    TextSize = 20,
     Font = Enum.Font.GothamBold,
     TextXAlignment = Enum.TextXAlignment.Left,
     LayoutOrder = 1
@@ -455,52 +438,52 @@ local Title = New("TextLabel",{
 
 -- HOME CARD
 local Home = New("Frame",{
-    Size = UDim2.new(1,0,0,190),
+    Size = UDim2.new(1,0,0,205),
     BackgroundColor3 = C.PANEL,
     BorderSizePixel = 0,
     LayoutOrder = 2
 },Content)
 
-Corner(Home,12)
+Corner(Home,13)
 Stroke(Home)
 
 New("TextLabel",{
-    Position = UDim2.new(0.04,0,0,12),
-    Size = UDim2.new(0.92,0,0,38),
+    Position = UDim2.new(0.04,0,0,14),
+    Size = UDim2.new(0.92,0,0,42),
     BackgroundTransparency = 1,
     Text = "Script do người Việt Nam làm nên hơn lỗi nha",
     TextColor3 = C.WHITE,
-    TextSize = 11,
+    TextSize = 12,
     TextWrapped = true,
     Font = Enum.Font.GothamMedium
 },Home)
 
 New("TextLabel",{
-    Position = UDim2.new(0.04,0,0,57),
+    Position = UDim2.new(0.04,0,0,65),
     Size = UDim2.new(0.92,0,0,25),
     BackgroundTransparency = 1,
     Text = "Join dis để xem update script",
     TextColor3 = C.GRAY,
-    TextSize = 11
+    TextSize = 12
 },Home)
 
 New("TextLabel",{
-    Position = UDim2.new(0.04,0,0,91),
+    Position = UDim2.new(0.04,0,0,100),
     Size = UDim2.new(0.92,0,0,24),
     BackgroundTransparency = 1,
     Text = "Join discord me ❤️",
     TextColor3 = C.WHITE,
-    TextSize = 12,
+    TextSize = 13,
     Font = Enum.Font.GothamBold
 },Home)
 
 local Link = New("TextButton",{
-    Position = UDim2.new(0.05,0,0,133),
-    Size = UDim2.new(0.90,0,0,38),
+    Position = UDim2.new(0.05,0,0,150),
+    Size = UDim2.new(0.90,0,0,40),
     BackgroundColor3 = Color3.fromRGB(43,22,61),
     Text = "Copy Discord Link",
     TextColor3 = C.WHITE,
-    TextSize = 11,
+    TextSize = 12,
     Font = Enum.Font.GothamBold
 },Home)
 
@@ -511,7 +494,6 @@ Link.MouseButton1Click:Connect(function()
         local success = pcall(function()
             setclipboard(DISCORD)
         end)
-
         Link.Text = success and "Copied!" or "Copy failed!"
     else
         Link.Text = "Clipboard not supported"
@@ -520,23 +502,23 @@ end)
 
 -- OTHER PAGE
 local Page = New("Frame",{
-    Size = UDim2.new(1,0,0,100),
+    Size = UDim2.new(1,0,0,110),
     BackgroundColor3 = C.PANEL,
     BorderSizePixel = 0,
     LayoutOrder = 2,
     Visible = false
 },Content)
 
-Corner(Page,12)
+Corner(Page,13)
 Stroke(Page)
 
 local PageText = New("TextLabel",{
-    Position = UDim2.new(0,10,0,10),
-    Size = UDim2.new(1,-20,1,-20),
+    Position = UDim2.new(0,12,0,12),
+    Size = UDim2.new(1,-24,1,-24),
     BackgroundTransparency = 1,
     Text = "Chức năng đang được cập nhật",
     TextColor3 = C.GRAY,
-    TextSize = 12,
+    TextSize = 13,
     TextWrapped = true
 },Page)
 
@@ -552,11 +534,11 @@ local Buttons = {}
 
 for i,name in ipairs(Names) do
     local B = New("TextButton",{
-        Size = UDim2.new(0.88,0,0,37),
+        Size = UDim2.new(0.88,0,0,41),
         BackgroundColor3 = i == 1 and C.SELECTED or C.BUTTON,
         Text = name,
         TextColor3 = C.WHITE,
-        TextSize = 10,
+        TextSize = 11,
         Font = Enum.Font.GothamMedium,
         LayoutOrder = i,
         ZIndex = 5
@@ -590,11 +572,11 @@ local Reopen = New("TextButton",{
     Name = "Reopen",
     AnchorPoint = Vector2.new(0.5,0.5),
     Position = UDim2.fromScale(0.5,0.12),
-    Size = UDim2.new(0,120,0,38),
+    Size = UDim2.new(0,130,0,40),
     BackgroundColor3 = C.BG,
     Text = "VulitqpHUB",
     TextColor3 = C.WHITE,
-    TextSize = 13,
+    TextSize = 14,
     Font = Enum.Font.GothamBold,
     Visible = false,
     ZIndex = 30
@@ -666,7 +648,6 @@ end)
 local verified = false
 
 local function CheckKey()
-
     if verified then return end
 
     if KeyBox.Text == KEY then
@@ -689,7 +670,7 @@ local function CheckKey()
         Intro:Destroy()
         Main.Visible = true
 
-        print("VulitqpHUB V1.8 loaded!")
+        print("VulitqpHUB V1.9 loaded!")
 
     else
 
@@ -713,7 +694,6 @@ local function CheckKey()
         Tween(Intro,0.08,{
             Position = UDim2.fromScale(0.5,0.5)
         })
-
     end
 end
 
@@ -725,4 +705,4 @@ KeyBox.FocusLost:Connect(function(enterPressed)
     end
 end)
 
-print("VulitqpHUB V1.8 starting...")
+print("VulitqpHUB V1.9 starting...")
