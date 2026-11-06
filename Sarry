@@ -856,5 +856,112 @@ KeyBox.FocusLost:Connect(function(enterPressed)
         CheckKey()
     end
 end)
+-- ==============================
+-- 7.1. Service & biến toàn cục
+-- ==============================
+local RunService = game:GetService("RunService")
+local Flying = false
+local FlySpeed = 50
+local FlyBodyVelocity
+
+-- ==============================
+-- 7.2. Hàm bật / tắt fly
+-- ==============================
+local function StartFly()
+    local character = Player.Character or Player.CharacterAdded:Wait()
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    local hum = character:FindFirstChildOfClass("Humanoid")
+    if not hrp or not hum then return end
+
+    FlyBodyVelocity = Instance.new("BodyVelocity")
+    FlyBodyVelocity.Name = "VulitqpHUB_FlyVelocity"
+    FlyBodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+    FlyBodyVelocity.P = 1250
+    FlyBodyVelocity.Parent = hrp
+
+    hum.PlatformStand = true
+end
+
+local function StopFly()
+    local character = Player.Character or Player.CharacterAdded:Wait()
+    local hum = character:FindFirstChildOfClass("Humanoid")
+    if FlyBodyVelocity and FlyBodyVelocity.Parent then
+        FlyBodyVelocity:Destroy()
+        FlyBodyVelocity = nil
+    end
+    if hum then
+        hum.PlatformStand = false
+    end
+end
+
+-- ==============================
+-- 7.3. Cập nhật vận tốc mỗi frame
+-- ==============================
+RunService.RenderStepped:Connect(function()
+    if Flying and FlyBodyVelocity then
+        local moveDir = Vector3.new(
+            (UIS:IsKeyDown(Enum.KeyCode.D) and 1 or 0) - (UIS:IsKeyDown(Enum.KeyCode.A) and 1 or 0),
+            (UIS:IsKeyDown(Enum.KeyCode.Space) and 1 or 0) - (UIS:IsKeyDown(Enum.KeyCode.LeftShift) and 1 or 0),
+            (UIS:IsKeyDown(Enum.KeyCode.S) and 1 or 0) - (UIS:IsKeyDown(Enum.KeyCode.W) and 1 or 0)
+        )
+        if moveDir.Magnitude > 0 then
+            moveDir = moveDir.Unit
+        end
+
+        local cam = workspace.CurrentCamera
+        local forward = -cam.CFrame.LookVector
+        local right   = cam.CFrame.RightVector
+        local up      = cam.CFrame.UpVector
+
+        local velocity = (forward * moveDir.Z + right * moveDir.X + up * moveDir.Y) * FlySpeed
+        FlyBodyVelocity.Velocity = velocity
+    end
+end)
+
+-- ==============================
+-- 7.4. Kết nối UI FlyButton
+-- ==============================
+FlyButton.MouseButton1Click:Connect(function()
+    Flying = not Flying
+
+    if Flying then
+        FlyButton.Text = "FLY: ON"
+        FlyButton.TextColor3 = C.GREEN
+        FlyButton.BackgroundColor3 = C.SELECTED
+        StartFly()
+    else
+        FlyButton.Text = "FLY: OFF"
+        FlyButton.TextColor3 = C.RED
+        FlyButton.BackgroundColor3 = C.BUTTON
+        StopFly()
+    end
+end)
+
+-- ==============================
+-- 7.5. Cập nhật tốc độ khi kéo thanh
+-- ==============================
+local function SetSpeedFromX(x)
+    local width = SpeedBar.AbsoluteSize.X
+    if width <= 0 then return end
+
+    local percent = math.clamp(
+        (x - SpeedBar.AbsolutePosition.X) / width,
+        0, 1
+    )
+
+    FlySpeed = math.clamp(
+        math.floor(1 + percent * 999 + 0.5),
+        1, 1000
+    )
+
+    local alpha = (FlySpeed - 1) / 999
+    SpeedFill.Size = UDim2.new(alpha, 0, 1, 0)
+    SpeedDot.Position = UDim2.new(alpha, 0, 0.5, 0)
+    SpeedValue.Text = tostring(FlySpeed)
+
+    if Flying and FlyBodyVelocity then
+        FlyBodyVelocity.Velocity = FlyBodyVelocity.Velocity.Unit * FlySpeed
+    end
+end
 
 print("VulitqpHUB V2.0 starting...")
