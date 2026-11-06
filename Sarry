@@ -1,8 +1,8 @@
 
 --==================================================
--- VULITQPHUB V1.6 FULL
+-- VULITQPHUB V1.8 FULL
 -- by sarry_fixe
--- INTRO + LOADING + KEY + MENU
+-- INTRO + LOADING + KEY SYSTEM + GET KEY + MENU
 --==================================================
 
 local Players = game:GetService("Players")
@@ -13,6 +13,7 @@ local Player = Players.LocalPlayer
 local PG = Player:WaitForChild("PlayerGui")
 
 local KEY = "lkjhgfdsa"
+local GET_KEY_LINK = "https://anotepad.com/notes/hpc3n3ci"
 local DISCORD = "https://discord.gg/6cRkHcNTC"
 
 local C = {
@@ -65,7 +66,10 @@ local function Tween(obj, duration, props)
     return t
 end
 
+--==================================================
 -- GUI
+--==================================================
+
 local GUI = New("ScreenGui",{
     Name = "VulitqpHUB",
     ResetOnSpawn = false,
@@ -151,36 +155,47 @@ local Percent = New("TextLabel",{
     ZIndex = 102
 },Intro)
 
--- LOADING
-for i = 0,100,2 do
-    Bar.Size = UDim2.new(i/100,0,1,0)
+-- LOADING 1% -> 100%
+for i = 1,100 do
     Percent.Text = "Loading... "..i.."%"
-    task.wait(0.07)
+
+    Tween(Bar,0.035,{
+        Size = UDim2.new(i/100,0,1,0)
+    })
+
+    task.wait(0.035)
 end
 
-task.wait(0.3)
+task.wait(0.4)
 
 --==================================================
--- KEY SCREEN
+-- KEY SYSTEM
 --==================================================
 
 Intro:ClearAllChildren()
-Intro.Size = UDim2.fromScale(0.72,0.34)
+
+-- WIDER KEY FRAME
+Intro.Size = UDim2.fromScale(0.78,0.40)
+Intro.BackgroundTransparency = 0
+Intro.BackgroundColor3 = C.PANEL
+
 Corner(Intro,15)
 Stroke(Intro)
 
+-- KEY TITLE
 New("TextLabel",{
-    Position = UDim2.new(0,0,0.09,0),
+    Position = UDim2.new(0,0,0.07,0),
     Size = UDim2.new(1,0,0,30),
     BackgroundTransparency = 1,
     Text = "VulitqpHUB",
     TextColor3 = C.WHITE,
-    TextSize = 19,
+    TextSize = 20,
     Font = Enum.Font.GothamBold
 },Intro)
 
+-- DESCRIPTION
 New("TextLabel",{
-    Position = UDim2.new(0,0,0.27,0),
+    Position = UDim2.new(0,0,0.23,0),
     Size = UDim2.new(1,0,0,20),
     BackgroundTransparency = 1,
     Text = "Enter your key to continue",
@@ -188,9 +203,10 @@ New("TextLabel",{
     TextSize = 11
 },Intro)
 
+-- KEY INPUT
 local KeyBox = New("TextBox",{
-    Position = UDim2.new(0.10,0,0.47,0),
-    Size = UDim2.new(0.80,0,0,36),
+    Position = UDim2.new(0.07,0,0.40,0),
+    Size = UDim2.new(0.86,0,0,38),
     BackgroundColor3 = C.BUTTON,
     Text = "",
     PlaceholderText = "Enter Key...",
@@ -204,9 +220,24 @@ local KeyBox = New("TextBox",{
 Corner(KeyBox,8)
 Stroke(KeyBox)
 
+-- GET KEY BUTTON
+local GetKey = New("TextButton",{
+    Position = UDim2.new(0.07,0,0.63,0),
+    Size = UDim2.new(0.415,0,0,36),
+    BackgroundColor3 = C.BUTTON,
+    Text = "GET KEY",
+    TextColor3 = C.WHITE,
+    TextSize = 12,
+    Font = Enum.Font.GothamBold
+},Intro)
+
+Corner(GetKey,8)
+Stroke(GetKey)
+
+-- VERIFY BUTTON
 local Verify = New("TextButton",{
-    Position = UDim2.new(0.10,0,0.70,0),
-    Size = UDim2.new(0.80,0,0,35),
+    Position = UDim2.new(0.515,0,0.63,0),
+    Size = UDim2.new(0.415,0,0,36),
     BackgroundColor3 = C.SELECTED,
     Text = "VERIFY KEY",
     TextColor3 = C.WHITE,
@@ -216,15 +247,44 @@ local Verify = New("TextButton",{
 
 Corner(Verify,8)
 
+-- STATUS
 local KeyStatus = New("TextLabel",{
-    Position = UDim2.new(0.05,0,0.88,0),
-    Size = UDim2.new(0.90,0,0,18),
+    Position = UDim2.new(0.05,0,0.83,0),
+    Size = UDim2.new(0.90,0,0,20),
     BackgroundTransparency = 1,
     Text = "",
     TextColor3 = C.RED,
     TextSize = 10,
     Font = Enum.Font.Gotham
 },Intro)
+
+-- GET KEY ACTION
+GetKey.MouseButton1Click:Connect(function()
+
+    if typeof(setclipboard) == "function" then
+
+        local success = pcall(function()
+            setclipboard(GET_KEY_LINK)
+        end)
+
+        if success then
+            GetKey.Text = "COPIED!"
+            KeyStatus.TextColor3 =
+                Color3.fromRGB(80,220,130)
+            KeyStatus.Text = "Link copied successfully!"
+        else
+            KeyStatus.TextColor3 = C.RED
+            KeyStatus.Text = "Copy failed!"
+        end
+
+    else
+        KeyStatus.TextColor3 = C.RED
+        KeyStatus.Text = "Clipboard not supported!"
+    end
+
+    task.wait(1.5)
+    GetKey.Text = "GET KEY"
+end)
 
 --==================================================
 -- MAIN MENU
@@ -296,6 +356,7 @@ local Min = New("TextButton",{
     TextSize = 18,
     ZIndex = 8
 },Header)
+
 Corner(Min,8)
 
 -- CLOSE
@@ -308,6 +369,7 @@ local Close = New("TextButton",{
     TextSize = 19,
     ZIndex = 8
 },Header)
+
 Corner(Close,8)
 
 -- BODY
@@ -343,7 +405,7 @@ New("UIListLayout",{
     HorizontalAlignment = Enum.HorizontalAlignment.Center
 },Sidebar)
 
--- ONE DIVIDER ONLY
+-- DIVIDER
 New("Frame",{
     Name = "Divider",
     Position = UDim2.new(0.29,0,0,0),
@@ -446,10 +508,13 @@ Corner(Link,9)
 
 Link.MouseButton1Click:Connect(function()
     if typeof(setclipboard) == "function" then
-        setclipboard(DISCORD)
-        Link.Text = "Copied!"
+        local success = pcall(function()
+            setclipboard(DISCORD)
+        end)
+
+        Link.Text = success and "Copied!" or "Copy failed!"
     else
-        Link.Text = DISCORD
+        Link.Text = "Clipboard not supported"
     end
 end)
 
@@ -601,12 +666,16 @@ end)
 local verified = false
 
 local function CheckKey()
+
     if verified then return end
 
     if KeyBox.Text == KEY then
+
         verified = true
 
-        KeyStatus.TextColor3 = Color3.fromRGB(80,220,130)
+        KeyStatus.TextColor3 =
+            Color3.fromRGB(80,220,130)
+
         KeyStatus.Text = "Key correct!"
 
         task.wait(0.5)
@@ -620,8 +689,10 @@ local function CheckKey()
         Intro:Destroy()
         Main.Visible = true
 
-        print("VulitqpHUB V1.6 loaded!")
+        print("VulitqpHUB V1.8 loaded!")
+
     else
+
         KeyStatus.TextColor3 = C.RED
         KeyStatus.Text = "Wrong Key! Try again."
 
@@ -642,6 +713,7 @@ local function CheckKey()
         Tween(Intro,0.08,{
             Position = UDim2.fromScale(0.5,0.5)
         })
+
     end
 end
 
@@ -653,4 +725,4 @@ KeyBox.FocusLost:Connect(function(enterPressed)
     end
 end)
 
-print("VulitqpHUB V1.6 starting...")
+print("VulitqpHUB V1.8 starting...")
