@@ -1,8 +1,7 @@
-
 --==================================================
 -- VULITQPHUB V1.9 FULL UI
 -- by sarry_fixe
--- INTRO + LOADING + KEY SYSTEM + GET KEY + MENU
+-- INTRO + LOADING + KEY SYSTEM + MENU
 --==================================================
 
 local Players = game:GetService("Players")
@@ -154,7 +153,6 @@ local Percent = New("TextLabel",{
     ZIndex = 102
 },Intro)
 
--- LOADING 1-100
 for i = 1,100 do
     Percent.Text = "Loading... "..i.."%"
 
@@ -168,19 +166,22 @@ end
 task.wait(0.4)
 
 --==================================================
--- KEY SYSTEM
+-- KEY SYSTEM - SPACING UPDATE
 --==================================================
 
 Intro:ClearAllChildren()
-Intro.Size = UDim2.fromScale(0.84,0.46)
+
+Intro.Size = UDim2.fromScale(0.84,0.50)
 Intro.BackgroundTransparency = 0
 Intro.BackgroundColor3 = C.PANEL
 
 Corner(Intro,17)
 Stroke(Intro)
 
+-- TITLE
+
 New("TextLabel",{
-    Position = UDim2.new(0,0,0.07,0),
+    Position = UDim2.new(0,0,0.055,0),
     Size = UDim2.new(1,0,0,34),
     BackgroundTransparency = 1,
     Text = "VulitqpHUB",
@@ -189,8 +190,10 @@ New("TextLabel",{
     Font = Enum.Font.GothamBold
 },Intro)
 
+-- SUBTITLE
+
 New("TextLabel",{
-    Position = UDim2.new(0,0,0.22,0),
+    Position = UDim2.new(0,0,0.19,0),
     Size = UDim2.new(1,0,0,22),
     BackgroundTransparency = 1,
     Text = "Enter your key to continue",
@@ -198,8 +201,10 @@ New("TextLabel",{
     TextSize = 12
 },Intro)
 
+-- KEY INPUT
+
 local KeyBox = New("TextBox",{
-    Position = UDim2.new(0.07,0,0.39,0),
+    Position = UDim2.new(0.07,0,0.35,0),
     Size = UDim2.new(0.86,0,0,42),
     BackgroundColor3 = C.BUTTON,
     Text = "",
@@ -214,8 +219,10 @@ local KeyBox = New("TextBox",{
 Corner(KeyBox,9)
 Stroke(KeyBox)
 
+-- GET KEY
+
 local GetKey = New("TextButton",{
-    Position = UDim2.new(0.07,0,0.62,0),
+    Position = UDim2.new(0.07,0,0.59,0),
     Size = UDim2.new(0.405,0,0,40),
     BackgroundColor3 = C.BUTTON,
     Text = "GET KEY",
@@ -227,8 +234,10 @@ local GetKey = New("TextButton",{
 Corner(GetKey,9)
 Stroke(GetKey)
 
+-- VERIFY
+
 local Verify = New("TextButton",{
-    Position = UDim2.new(0.525,0,0.62,0),
+    Position = UDim2.new(0.525,0,0.59,0),
     Size = UDim2.new(0.405,0,0,40),
     BackgroundColor3 = C.SELECTED,
     Text = "VERIFY",
@@ -239,8 +248,10 @@ local Verify = New("TextButton",{
 
 Corner(Verify,9)
 
+-- STATUS
+
 local KeyStatus = New("TextLabel",{
-    Position = UDim2.new(0.05,0,0.83,0),
+    Position = UDim2.new(0.05,0,0.84,0),
     Size = UDim2.new(0.90,0,0,20),
     BackgroundTransparency = 1,
     Text = "",
@@ -249,7 +260,10 @@ local KeyStatus = New("TextLabel",{
     Font = Enum.Font.Gotham
 },Intro)
 
--- GET KEY
+--==================================================
+-- GET KEY FUNCTION
+--==================================================
+
 GetKey.MouseButton1Click:Connect(function()
     if typeof(setclipboard) == "function" then
         local success = pcall(function()
@@ -293,6 +307,7 @@ Corner(Main,17)
 Stroke(Main)
 
 -- HEADER
+
 local Header = New("Frame",{
     Name = "Header",
     Size = UDim2.new(1,0,0,56),
@@ -342,6 +357,7 @@ local Min = New("TextButton",{
     TextSize = 18,
     ZIndex = 8
 },Header)
+
 Corner(Min,8)
 
 local Close = New("TextButton",{
@@ -353,9 +369,11 @@ local Close = New("TextButton",{
     TextSize = 20,
     ZIndex = 8
 },Header)
+
 Corner(Close,8)
 
 -- BODY
+
 local Body = New("Frame",{
     Position = UDim2.new(0,0,0,56),
     Size = UDim2.new(1,0,1,-56),
@@ -365,6 +383,7 @@ local Body = New("Frame",{
 },Main)
 
 -- SIDEBAR
+
 local Sidebar = New("ScrollingFrame",{
     Name = "Sidebar",
     Size = UDim2.new(0.27,0,1,0),
@@ -389,6 +408,7 @@ New("UIListLayout",{
 },Sidebar)
 
 -- DIVIDER
+
 New("Frame",{
     Name = "Divider",
     Position = UDim2.new(0.27,0,0,0),
@@ -399,6 +419,7 @@ New("Frame",{
 },Body)
 
 -- CONTENT
+
 local Content = New("ScrollingFrame",{
     Name = "Content",
     Position = UDim2.new(0.27,1,0,0),
@@ -425,6 +446,7 @@ New("UIListLayout",{
 },Content)
 
 -- PAGE TITLE
+
 local Title = New("TextLabel",{
     Size = UDim2.new(1,0,0,36),
     BackgroundTransparency = 1,
@@ -437,6 +459,7 @@ local Title = New("TextLabel",{
 },Content)
 
 -- HOME CARD
+
 local Home = New("Frame",{
     Size = UDim2.new(1,0,0,205),
     BackgroundColor3 = C.PANEL,
@@ -494,6 +517,7 @@ Link.MouseButton1Click:Connect(function()
         local success = pcall(function()
             setclipboard(DISCORD)
         end)
+
         Link.Text = success and "Copied!" or "Copy failed!"
     else
         Link.Text = "Clipboard not supported"
@@ -501,6 +525,7 @@ Link.MouseButton1Click:Connect(function()
 end)
 
 -- OTHER PAGE
+
 local Page = New("Frame",{
     Size = UDim2.new(1,0,0,110),
     BackgroundColor3 = C.PANEL,
@@ -522,7 +547,10 @@ local PageText = New("TextLabel",{
     TextWrapped = true
 },Page)
 
+--==================================================
 -- TABS
+--==================================================
+
 local Names = {
     "Trang chủ",
     "Chức năng 1",
