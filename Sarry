@@ -1,15 +1,15 @@
 
 --==================================================
--- VulitqpHUB V1
+-- VULITQPHUB V1.1
 -- by sarry_fixe
--- Delta Android - UI ONLY
+-- Delta Android | UI ONLY
 --==================================================
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 
 local Player = Players.LocalPlayer
-local PG = Player:WaitForChild("PlayerGui")
+local PlayerGui = Player:WaitForChild("PlayerGui")
 
 local Purple = Color3.fromRGB(145, 55, 220)
 local Dark = Color3.fromRGB(14, 13, 19)
@@ -17,19 +17,22 @@ local Panel = Color3.fromRGB(23, 21, 30)
 local White = Color3.fromRGB(245, 240, 255)
 local Gray = Color3.fromRGB(175, 170, 185)
 
+-- XÓA GUI CŨ
 pcall(function()
-    PG.VulitqpHUB:Destroy()
+    PlayerGui:FindFirstChild("VulitqpHUB"):Destroy()
 end)
 
 local GUI = Instance.new("ScreenGui")
 GUI.Name = "VulitqpHUB"
 GUI.ResetOnSpawn = false
+GUI.IgnoreGuiInset = true
 GUI.DisplayOrder = 999
-GUI.Parent = PG
+GUI.Parent = PlayerGui
 
+-- HÀM TẠO
 local function New(class, props, parent)
     local obj = Instance.new(class)
-    for k,v in pairs(props) do
+    for k, v in pairs(props) do
         obj[k] = v
     end
     obj.Parent = parent
@@ -42,10 +45,10 @@ local function Round(obj, radius)
     }, obj)
 end
 
-local function Border(obj)
+local function Border(obj, color, thickness)
     New("UIStroke", {
-        Color = Purple,
-        Thickness = 1.3,
+        Color = color or Purple,
+        Thickness = thickness or 1.3,
         Transparency = 0.2
     }, obj)
 end
@@ -55,7 +58,7 @@ local Main = New("Frame", {
     Name = "Main",
     AnchorPoint = Vector2.new(0.5, 0.5),
     Position = UDim2.fromScale(0.5, 0.5),
-    Size = UDim2.fromScale(0.94, 0.88),
+    Size = UDim2.fromScale(0.62, 0.68),
     BackgroundColor3 = Dark,
     BorderSizePixel = 0
 }, GUI)
@@ -63,9 +66,14 @@ local Main = New("Frame", {
 Round(Main, 15)
 Border(Main)
 
+New("UISizeConstraint", {
+    MinSize = Vector2.new(300, 260),
+    MaxSize = Vector2.new(850, 650)
+}, Main)
+
 -- HEADER
 local Header = New("Frame", {
-    Size = UDim2.new(1, 0, 0, 62),
+    Size = UDim2.new(1, 0, 0, 55),
     BackgroundColor3 = Panel,
     BorderSizePixel = 0
 }, Main)
@@ -73,139 +81,176 @@ local Header = New("Frame", {
 Round(Header, 15)
 
 New("TextLabel", {
-    Position = UDim2.new(0, 12, 0, 8),
-    Size = UDim2.new(0, 42, 0, 42),
+    Position = UDim2.new(0, 10, 0, 5),
+    Size = UDim2.new(0, 38, 0, 42),
     BackgroundTransparency = 1,
     Text = "🍉",
-    TextSize = 29
+    TextSize = 26
 }, Header)
 
 New("TextLabel", {
-    Position = UDim2.new(0, 58, 0, 8),
-    Size = UDim2.new(0, 170, 0, 27),
+    Position = UDim2.new(0, 53, 0, 7),
+    Size = UDim2.new(0.45, 0, 0, 23),
     BackgroundTransparency = 1,
     Text = "VulitqpHUB",
     TextColor3 = White,
-    TextSize = 20,
+    TextSize = 18,
     Font = Enum.Font.GothamBold,
     TextXAlignment = Enum.TextXAlignment.Left
 }, Header)
 
 New("TextLabel", {
-    Position = UDim2.new(0, 60, 0, 34),
-    Size = UDim2.new(0, 130, 0, 17),
+    Position = UDim2.new(0, 54, 0, 29),
+    Size = UDim2.new(0.4, 0, 0, 17),
     BackgroundTransparency = 1,
     Text = "@sarry_fixe",
     TextColor3 = Gray,
-    TextSize = 12,
+    TextSize = 11,
     Font = Enum.Font.Gotham,
     TextXAlignment = Enum.TextXAlignment.Left
 }, Header)
 
-local Close = New("TextButton", {
+local Min = New("TextButton", {
     AnchorPoint = Vector2.new(1, 0),
-    Position = UDim2.new(1, -10, 0, 12),
-    Size = UDim2.new(0, 38, 0, 38),
-    BackgroundColor3 = Panel,
-    Text = "×",
+    Position = UDim2.new(1, -51, 0, 9),
+    Size = UDim2.new(0, 34, 0, 34),
+    BackgroundColor3 = Dark,
+    Text = "—",
     TextColor3 = White,
-    TextSize = 25,
+    TextSize = 20,
     Font = Enum.Font.GothamBold
 }, Header)
+Round(Min, 9)
+Border(Min)
 
-Round(Close, 10)
+local Close = New("TextButton", {
+    AnchorPoint = Vector2.new(1, 0),
+    Position = UDim2.new(1, -9, 0, 9),
+    Size = UDim2.new(0, 34, 0, 34),
+    BackgroundColor3 = Dark,
+    Text = "×",
+    TextColor3 = White,
+    TextSize = 23,
+    Font = Enum.Font.GothamBold
+}, Header)
+Round(Close, 9)
+Border(Close)
 
 -- BODY
 local Body = New("Frame", {
-    Position = UDim2.new(0, 0, 0, 62),
-    Size = UDim2.new(1, 0, 1, -62),
+    Position = UDim2.new(0, 0, 0, 55),
+    Size = UDim2.new(1, 0, 1, -55),
     BackgroundTransparency = 1
 }, Main)
 
 -- SIDEBAR
 local Sidebar = New("Frame", {
-    Size = UDim2.new(0.29, 0, 1, 0),
+    Size = UDim2.new(0.30, 0, 1, 0),
     BackgroundColor3 = Color3.fromRGB(12, 11, 17),
     BorderSizePixel = 0
 }, Body)
 
+New("Frame", {
+    Position = UDim2.new(1, -1, 0, 0),
+    Size = UDim2.new(0, 1, 1, 0),
+    BackgroundColor3 = Purple,
+    BorderSizePixel = 0
+}, Sidebar)
+
 -- CONTENT
 local Content = New("Frame", {
-    Position = UDim2.new(0.29, 0, 0, 0),
-    Size = UDim2.new(0.71, 0, 1, 0),
+    Position = UDim2.new(0.30, 0, 0, 0),
+    Size = UDim2.new(0.70, 0, 1, 0),
     BackgroundTransparency = 1
 }, Body)
 
 local Heading = New("TextLabel", {
-    Position = UDim2.new(0, 15, 0, 15),
-    Size = UDim2.new(1, -25, 0, 35),
+    Position = UDim2.new(0.07, 0, 0, 15),
+    Size = UDim2.new(0.87, 0, 0, 32),
     BackgroundTransparency = 1,
     Text = "Trang chủ",
     TextColor3 = White,
-    TextSize = 21,
+    TextSize = 20,
     Font = Enum.Font.GothamBold,
     TextXAlignment = Enum.TextXAlignment.Left
 }, Content)
 
 -- HOME CARD
 local Home = New("Frame", {
-    Position = UDim2.new(0.05, 0, 0, 65),
-    Size = UDim2.new(0.90, 0, 0, 210),
+    Position = UDim2.new(0.055, 0, 0, 62),
+    Size = UDim2.new(0.89, 0, 0, 190),
     BackgroundColor3 = Panel,
     BorderSizePixel = 0
 }, Content)
 
-Round(Home, 13)
+Round(Home, 12)
 Border(Home)
 
-New("TextLabel", {
-    Position = UDim2.new(0.05, 0, 0, 18),
-    Size = UDim2.new(0.90, 0, 0, 55),
+local Message = New("TextLabel", {
+    Position = UDim2.new(0.05, 0, 0, 15),
+    Size = UDim2.new(0.90, 0, 0, 38),
     BackgroundTransparency = 1,
     Text = "Script do người Việt Nam làm nên hơn lỗi nha",
     TextColor3 = White,
-    TextSize = 13,
+    TextSize = 12,
     TextWrapped = true,
     Font = Enum.Font.GothamMedium
 }, Home)
 
-New("TextLabel", {
-    Position = UDim2.new(0.05, 0, 0, 83),
+local Update = New("TextLabel", {
+    Position = UDim2.new(0.05, 0, 0, 62),
     Size = UDim2.new(0.90, 0, 0, 25),
     BackgroundTransparency = 1,
     Text = "Join dis để xem update script",
     TextColor3 = Gray,
-    TextSize = 13,
+    TextSize = 12,
     Font = Enum.Font.Gotham
 }, Home)
 
-New("TextLabel", {
-    Position = UDim2.new(0.05, 0, 0, 115),
-    Size = UDim2.new(0.90, 0, 0, 25),
+local DiscordTitle = New("TextLabel", {
+    Position = UDim2.new(0.05, 0, 0, 94),
+    Size = UDim2.new(0.90, 0, 0, 24),
     BackgroundTransparency = 1,
     Text = "Join discord me ❤️",
     TextColor3 = White,
-    TextSize = 14,
+    TextSize = 13,
     Font = Enum.Font.GothamBold
 }, Home)
 
 local Link = New("TextButton", {
-    Position = UDim2.new(0.05, 0, 0, 155),
-    Size = UDim2.new(0.90, 0, 0, 38),
+    Position = UDim2.new(0.05, 0, 0, 133),
+    Size = UDim2.new(0.90, 0, 0, 39),
     BackgroundColor3 = Color3.fromRGB(43, 22, 61),
     Text = "https://discord.gg/6cRkHcNTC",
-    TextColor3 = White,
+    TextColor3 = Purple,
     TextSize = 11,
     Font = Enum.Font.GothamBold
 }, Home)
 
 Round(Link, 9)
+Border(Link)
 
 Link.MouseButton1Click:Connect(function()
-    if setclipboard then
+    if typeof(setclipboard) == "function" then
         setclipboard("https://discord.gg/6cRkHcNTC")
     end
 end)
+
+-- THÔNG BÁO TAB
+local Placeholder = New("TextLabel", {
+    Position = UDim2.new(0.06, 0, 0, 65),
+    Size = UDim2.new(0.88, 0, 0, 90),
+    BackgroundColor3 = Panel,
+    Text = "Chức năng đang được cập nhật",
+    TextColor3 = Gray,
+    TextSize = 13,
+    TextWrapped = true,
+    Font = Enum.Font.Gotham
+}, Content)
+
+Round(Placeholder, 12)
+Border(Placeholder)
+Placeholder.Visible = false
 
 -- TABS
 local Tabs = {
@@ -219,18 +264,19 @@ local TabButtons = {}
 
 for i, name in ipairs(Tabs) do
     local Button = New("TextButton", {
-        Position = UDim2.new(0.07, 0, 0, 18 + (i-1)*58),
-        Size = UDim2.new(0.86, 0, 0, 46),
+        Position = UDim2.new(0.07, 0, 0, 18 + (i-1)*53),
+        Size = UDim2.new(0.86, 0, 0, 43),
         BackgroundColor3 = i == 1
             and Color3.fromRGB(70, 25, 110)
             or Panel,
         Text = name,
         TextColor3 = White,
-        TextSize = 12,
-        Font = Enum.Font.GothamMedium
+        TextSize = 11,
+        Font = Enum.Font.GothamMedium,
+        TextWrapped = true
     }, Sidebar)
 
-    Round(Button, 9)
+    Round(Button, 10)
     TabButtons[i] = Button
 
     Button.MouseButton1Click:Connect(function()
@@ -243,69 +289,71 @@ for i, name in ipairs(Tabs) do
         end
 
         Home.Visible = i == 1
+        Placeholder.Visible = i ~= 1
+
+        if i ~= 1 then
+            Placeholder.Text = name .. "\nChức năng đang được cập nhật"
+        end
     end)
 end
 
 -- THU NHỎ
-local Min = New("TextButton", {
-    Position = UDim2.new(1, -58, 0, 12),
-    Size = UDim2.new(0, 38, 0, 38),
-    BackgroundColor3 = Panel,
-    Text = "—",
-    TextColor3 = White,
-    TextSize = 20
-}, Header)
-
-Round(Min, 10)
-
 local minimized = false
 
 Min.MouseButton1Click:Connect(function()
     minimized = not minimized
     Body.Visible = not minimized
+
     Main.Size = minimized
-        and UDim2.fromScale(0.94, 0.10)
-        or UDim2.fromScale(0.94, 0.88)
+        and UDim2.fromScale(0.62, 0.11)
+        or UDim2.fromScale(0.62, 0.68)
 end)
 
+-- ĐÓNG MENU
 Close.MouseButton1Click:Connect(function()
     GUI:Destroy()
 end)
 
--- KÉO MENU
+-- KÉO MENU BẰNG HEADER
 local dragging = false
 local dragStart
-local startPos
+local startPosition
+local dragInput
 
 Header.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.Touch
     or input.UserInputType == Enum.UserInputType.MouseButton1 then
+
         dragging = true
         dragStart = input.Position
-        startPos = Main.Position
+        startPosition = Main.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+Header.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch
+    or input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
     end
 end)
 
 UIS.InputChanged:Connect(function(input)
-    if dragging and (
-        input.UserInputType == Enum.UserInputType.Touch
-        or input.UserInputType == Enum.UserInputType.MouseMovement
-    ) then
+    if dragging and input == dragInput then
         local delta = input.Position - dragStart
+
         Main.Position = UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset + delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset + delta.Y
+            startPosition.X.Scale,
+            startPosition.X.Offset + delta.X,
+            startPosition.Y.Scale,
+            startPosition.Y.Offset + delta.Y
         )
     end
 end)
 
-UIS.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.Touch
-    or input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
-    end
-end)
-
-print("VulitqpHUB V1 loaded!")
+print("VulitqpHUB V1.1 loaded!")
