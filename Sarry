@@ -2,7 +2,7 @@
 -- VULITQPHUB V2.0 FULL UI
 -- by sarry_fixe
 -- INTRO + LOADING + KEY SYSTEM + MAIN MENU
--- CHUNG + FLY UI + SPEED 1-1000
+-- CHUNG + FLY ERROR + SPEED INPUT 1-1000
 --==================================================
 
 local Players = game:GetService("Players")
@@ -39,9 +39,11 @@ end)
 
 local function New(class,props,parent)
     local obj = Instance.new(class)
+
     for k,v in pairs(props) do
         obj[k] = v
     end
+
     obj.Parent = parent
     return obj
 end
@@ -65,6 +67,7 @@ local function Tween(obj,duration,props)
         TweenInfo.new(duration,Enum.EasingStyle.Sine),
         props
     )
+
     t:Play()
     return t
 end
@@ -157,9 +160,11 @@ local Percent = New("TextLabel",{
 
 for i = 1,100 do
     Percent.Text = "Loading... "..i.."%"
+
     Tween(Bar,0.035,{
         Size = UDim2.new(i/100,0,1,0)
     })
+
     task.wait(0.035)
 end
 
@@ -338,6 +343,7 @@ local Min = New("TextButton",{
     TextSize = 18,
     ZIndex = 8
 },Header)
+
 Corner(Min,8)
 
 local Close = New("TextButton",{
@@ -349,6 +355,7 @@ local Close = New("TextButton",{
     TextSize = 20,
     ZIndex = 8
 },Header)
+
 Corner(Close,8)
 
 local Body = New("Frame",{
@@ -451,7 +458,7 @@ New("TextLabel",{
     Position = UDim2.new(0.04,0,0,14),
     Size = UDim2.new(0.92,0,0,42),
     BackgroundTransparency = 1,
-    Text = "Script do người Việt Nam làm nên hơn lỗi nha",
+    Text = "Script do người Việt Nam làm nên hơi lỗi nha",
     TextColor3 = C.WHITE,
     TextSize = 12,
     TextWrapped = true,
@@ -494,6 +501,7 @@ Link.MouseButton1Click:Connect(function()
         local success = pcall(function()
             setclipboard(DISCORD)
         end)
+
         Link.Text = success and "Copied!" or "Copy failed!"
     else
         Link.Text = "Clipboard not supported"
@@ -515,7 +523,7 @@ local Page = New("Frame",{
 Corner(Page,13)
 Stroke(Page)
 
--- FLY + ERROR TITLE
+-- FLY TITLE
 
 New("TextLabel",{
     Position = UDim2.new(0,12,0,10),
@@ -570,34 +578,42 @@ FlyButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- SPEED LABEL
+--==================================================
+-- SPEED INPUT + SLIDER
+--==================================================
+
+local FlySpeed = 50
+local sliding = false
 
 New("TextLabel",{
     Position = UDim2.new(0.06,0,0,115),
-    Size = UDim2.new(0.88,0,0,23),
+    Size = UDim2.new(0,100,0,23),
     BackgroundTransparency = 1,
-    Text = "FLY SPEED",
+    Text = "SPEED",
     TextColor3 = C.WHITE,
-    TextSize = 12,
+    TextSize = 13,
     Font = Enum.Font.GothamBold,
     TextXAlignment = Enum.TextXAlignment.Left
 },Page)
 
-local SpeedValue = New("TextLabel",{
-    Position = UDim2.new(0.65,0,0,115),
-    Size = UDim2.new(0.29,0,0,23),
-    BackgroundTransparency = 1,
+local SpeedInput = New("TextBox",{
+    Position = UDim2.new(0.68,0,0,110),
+    Size = UDim2.new(0.26,0,0,32),
+    BackgroundColor3 = C.BUTTON,
     Text = "50",
+    PlaceholderText = "1-1000",
+    PlaceholderColor3 = C.GRAY,
     TextColor3 = C.WHITE,
     TextSize = 12,
     Font = Enum.Font.GothamBold,
-    TextXAlignment = Enum.TextXAlignment.Right
+    ClearTextOnFocus = false
 },Page)
 
--- SPEED BAR
+Corner(SpeedInput,8)
+Stroke(SpeedInput)
 
 local SpeedBar = New("TextButton",{
-    Position = UDim2.new(0.06,0,0,155),
+    Position = UDim2.new(0.06,0,0,160),
     Size = UDim2.new(0.88,0,0,12),
     BackgroundColor3 = C.BUTTON,
     Text = "",
@@ -607,7 +623,7 @@ local SpeedBar = New("TextButton",{
 Corner(SpeedBar,10)
 
 local SpeedFill = New("Frame",{
-    Size = UDim2.new(49/999,0,1,0),
+    Size = UDim2.new((FlySpeed-1)/999,0,1,0),
     BackgroundColor3 = C.PURPLE,
     BorderSizePixel = 0
 },SpeedBar)
@@ -616,7 +632,7 @@ Corner(SpeedFill,10)
 
 local SpeedDot = New("Frame",{
     AnchorPoint = Vector2.new(0.5,0.5),
-    Position = UDim2.new(49/999,0,0.5,0),
+    Position = UDim2.new((FlySpeed-1)/999,0,0.5,0),
     Size = UDim2.fromOffset(17,17),
     BackgroundColor3 = C.WHITE,
     BorderSizePixel = 0
@@ -624,33 +640,56 @@ local SpeedDot = New("Frame",{
 
 Corner(SpeedDot,20)
 
-local FlySpeed = 50
-local sliding = false
+-- UPDATE SPEED
 
-local function SetSpeedFromX(x)
-    local width = SpeedBar.AbsoluteSize.X
-    if width <= 0 then return end
-
-    local percent = math.clamp(
-        (x-SpeedBar.AbsolutePosition.X)/width,
-        0,1
-    )
-
+local function SetSpeed(value)
     FlySpeed = math.clamp(
-        math.floor(1+percent*999+0.5),
-        1,1000
+        math.floor(value + 0.5),
+        1,
+        1000
     )
 
     local alpha = (FlySpeed-1)/999
 
+    SpeedInput.Text = tostring(FlySpeed)
     SpeedFill.Size = UDim2.new(alpha,0,1,0)
     SpeedDot.Position = UDim2.new(alpha,0,0.5,0)
-    SpeedValue.Text = tostring(FlySpeed)
+end
+
+-- INPUT SPEED
+
+SpeedInput.FocusLost:Connect(function()
+    local value = tonumber(SpeedInput.Text)
+
+    if value then
+        SetSpeed(value)
+    else
+        SetSpeed(FlySpeed)
+    end
+end)
+
+-- SLIDER SPEED
+
+local function SetSpeedFromX(x)
+    local width = SpeedBar.AbsoluteSize.X
+
+    if width <= 0 then
+        return
+    end
+
+    local percent = math.clamp(
+        (x-SpeedBar.AbsolutePosition.X)/width,
+        0,
+        1
+    )
+
+    SetSpeed(1+percent*999)
 end
 
 SpeedBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1
     or input.UserInputType == Enum.UserInputType.Touch then
+
         sliding = true
         SetSpeedFromX(input.Position.X)
     end
@@ -661,6 +700,7 @@ UIS.InputChanged:Connect(function(input)
         input.UserInputType == Enum.UserInputType.MouseMovement
         or input.UserInputType == Enum.UserInputType.Touch
     ) then
+
         SetSpeedFromX(input.Position.X)
     end
 end)
@@ -668,6 +708,7 @@ end)
 UIS.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1
     or input.UserInputType == Enum.UserInputType.Touch then
+
         sliding = false
     end
 end)
@@ -678,9 +719,9 @@ New("TextLabel",{
     Position = UDim2.new(0.06,0,0,190),
     Size = UDim2.new(0.88,0,0,25),
     BackgroundTransparency = 1,
-    Text = "Speed: 1 - 1000",
+    Text = "MIN: 1                         MAX: 1000",
     TextColor3 = C.GRAY,
-    TextSize = 11,
+    TextSize = 10,
     TextXAlignment = Enum.TextXAlignment.Left
 },Page)
 
@@ -807,6 +848,7 @@ end)
 UIS.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.Touch
     or input.UserInputType == Enum.UserInputType.MouseButton1 then
+
         dragging = false
     end
 end)
@@ -818,10 +860,12 @@ end)
 local verified = false
 
 local function CheckKey()
-    if verified then return end
+    if verified then
+        return
+    end
 
     if KeyBox.Text == KEY then
-        verified = true
+    verified = true
 
         KeyStatus.TextColor3 = C.GREEN
         KeyStatus.Text = "Key correct!"
@@ -838,6 +882,7 @@ local function CheckKey()
         Main.Visible = true
 
         print("VulitqpHUB V2.0 loaded!")
+
     else
         KeyStatus.TextColor3 = C.RED
         KeyStatus.Text = "Wrong Key! Try again."
@@ -863,118 +908,10 @@ local function CheckKey()
 end
 
 Verify.MouseButton1Click:Connect(CheckKey)
-
 KeyBox.FocusLost:Connect(function(enterPressed)
     if enterPressed then
         CheckKey()
     end
 end)
--- ==============================
--- 7.1. Service & biến toàn cục
--- ==============================
-local RunService = game:GetService("RunService")
-local Flying = false
-local FlySpeed = 50
-local FlyBodyVelocity
-
--- ==============================
--- 7.2. Hàm bật / tắt fly
--- ==============================
-local function StartFly()
-    local character = Player.Character or Player.CharacterAdded:Wait()
-    local hrp = character:FindFirstChild("HumanoidRootPart")
-    local hum = character:FindFirstChildOfClass("Humanoid")
-    if not hrp or not hum then return end
-
-    FlyBodyVelocity = Instance.new("BodyVelocity")
-    FlyBodyVelocity.Name = "VulitqpHUB_FlyVelocity"
-    FlyBodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
-    FlyBodyVelocity.P = 1250
-    FlyBodyVelocity.Parent = hrp
-
-    hum.PlatformStand = true
-end
-
-local function StopFly()
-    local character = Player.Character or Player.CharacterAdded:Wait()
-    local hum = character:FindFirstChildOfClass("Humanoid")
-    if FlyBodyVelocity and FlyBodyVelocity.Parent then
-        FlyBodyVelocity:Destroy()
-        FlyBodyVelocity = nil
-    end
-    if hum then
-        hum.PlatformStand = false
-    end
-end
-
--- ==============================
--- 7.3. Cập nhật vận tốc mỗi frame
--- ==============================
-RunService.RenderStepped:Connect(function()
-    if Flying and FlyBodyVelocity then
-        local moveDir = Vector3.new(
-            (UIS:IsKeyDown(Enum.KeyCode.D) and 1 or 0) - (UIS:IsKeyDown(Enum.KeyCode.A) and 1 or 0),
-            (UIS:IsKeyDown(Enum.KeyCode.Space) and 1 or 0) - (UIS:IsKeyDown(Enum.KeyCode.LeftShift) and 1 or 0),
-            (UIS:IsKeyDown(Enum.KeyCode.S) and 1 or 0) - (UIS:IsKeyDown(Enum.KeyCode.W) and 1 or 0)
-        )
-        if moveDir.Magnitude > 0 then
-            moveDir = moveDir.Unit
-        end
-
-        local cam = workspace.CurrentCamera
-        local forward = -cam.CFrame.LookVector
-        local right   = cam.CFrame.RightVector
-        local up      = cam.CFrame.UpVector
-
-        local velocity = (forward * moveDir.Z + right * moveDir.X + up * moveDir.Y) * FlySpeed
-        FlyBodyVelocity.Velocity = velocity
-    end
-end)
-
--- ==============================
--- 7.4. Kết nối UI FlyButton
--- ==============================
-FlyButton.MouseButton1Click:Connect(function()
-    Flying = not Flying
-
-    if Flying then
-        FlyButton.Text = "FLY: ON"
-        FlyButton.TextColor3 = C.GREEN
-        FlyButton.BackgroundColor3 = C.SELECTED
-        StartFly()
-    else
-        FlyButton.Text = "FLY: OFF"
-        FlyButton.TextColor3 = C.RED
-        FlyButton.BackgroundColor3 = C.BUTTON
-        StopFly()
-    end
-end)
-
--- ==============================
--- 7.5. Cập nhật tốc độ khi kéo thanh
--- ==============================
-local function SetSpeedFromX(x)
-    local width = SpeedBar.AbsoluteSize.X
-    if width <= 0 then return end
-
-    local percent = math.clamp(
-        (x - SpeedBar.AbsolutePosition.X) / width,
-        0, 1
-    )
-
-    FlySpeed = math.clamp(
-        math.floor(1 + percent * 999 + 0.5),
-        1, 1000
-    )
-
-    local alpha = (FlySpeed - 1) / 999
-    SpeedFill.Size = UDim2.new(alpha, 0, 1, 0)
-    SpeedDot.Position = UDim2.new(alpha, 0, 0.5, 0)
-    SpeedValue.Text = tostring(FlySpeed)
-
-    if Flying and FlyBodyVelocity then
-        FlyBodyVelocity.Velocity = FlyBodyVelocity.Velocity.Unit * FlySpeed
-    end
-end
 
 print("VulitqpHUB V2.0 starting...")
