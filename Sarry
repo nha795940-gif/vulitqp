@@ -1,994 +1,444 @@
 
---========================================================
--- VULITQPHUB V2.0 FULL UI
+--==================================================
+-- VULITQPHUB V2.0 FULL - PURPLE EDITION
 -- by sarry_fixe
--- INTRO + LOADING + KEY SYSTEM
--- MAIN MENU + 4 TABS + DISCORD
--- FLY + SPEED 1-10000 + NOCLIP
---========================================================
+-- INTRO + LOADING + KEY SYSTEM + MAIN MENU
+-- HOME + CHUNG + CHUC NANG 2 + CAI DAT
+-- FLY + SPEED + NOCLIP
+-- SPEED LIMIT: 1 - 1000
+--==================================================
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
-local GuiService = game:GetService("GuiService")
-
 local Player = Players.LocalPlayer
+
+local PlayerGui = Player:WaitForChild("PlayerGui")
+
+--==================================================
+-- SETTINGS
+--==================================================
+
 local KEY = "lkjhgfdsa"
 local DISCORD = "https://discord.gg/6cRkHcNTC"
 local GET_KEY = "https://anotepad.com/notes/hpc3n3ci"
 
---========================================================
--- CHARACTER
---========================================================
+local PURPLE = Color3.fromRGB(168, 85, 247)
+local DARK_PURPLE = Color3.fromRGB(109, 40, 217)
+local BG = Color3.fromRGB(17, 12, 27)
+local PANEL = Color3.fromRGB(29, 20, 44)
+local CARD = Color3.fromRGB(39, 27, 57)
+local WHITE = Color3.fromRGB(245, 240, 255)
+local MUTED = Color3.fromRGB(170, 150, 190)
 
-local Character = Player.Character or Player.CharacterAdded:Wait()
-local Humanoid = Character:WaitForChild("Humanoid")
-local Root = Character:WaitForChild("HumanoidRootPart")
-
-local DefaultWalkSpeed = Humanoid.WalkSpeed
-
---========================================================
--- SETTINGS
---========================================================
+local FlySpeed = 50
+local WalkSpeedValue = 50
 
 local FlyEnabled = false
 local SpeedEnabled = false
 local NoclipEnabled = false
 
-local FlySpeed = 50
-local SpeedValue = 50
+local FlyUp = false
+local FlyDown = false
 
-local UpHeld = false
-local DownHeld = false
-
-local FlyConnection
-local NoclipConnection
-
-local FlyAttachment
+local Character
+local Humanoid
+local RootPart
 local FlyVelocity
+local FlyGyro
 
 local OriginalCollision = {}
+local MainFrame
+local ReopenButton
+local FlyToggleButton
+local SpeedToggleButton
+local NoclipToggleButton
 
---========================================================
--- GUI
---========================================================
+local Connections = {}
 
-local Gui = Instance.new("ScreenGui")
-Gui.Name = "VULITQPHUB"
-Gui.ResetOnSpawn = false
-Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-Gui.Parent = Player:WaitForChild("PlayerGui")
+--==================================================
+-- CHARACTER
+--==================================================
+
+local function UpdateCharacter(char)
+    Character = char
+    Humanoid = char:WaitForChild("Humanoid")
+    RootPart = char:WaitForChild("HumanoidRootPart")
+
+    if SpeedEnabled then
+        Humanoid.WalkSpeed = WalkSpeedValue
+    end
+end
+
+if Player.Character then
+    UpdateCharacter(Player.Character)
+end
+
+Player.CharacterAdded:Connect(UpdateCharacter)
+
+--==================================================
+-- GUI HELPERS
+--==================================================
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "VULITQPHUB"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.Parent = PlayerGui
 
 local function New(class, props, parent)
     local obj = Instance.new(class)
 
-    for key, value in pairs(props or {}) do
-        obj[key] = value
+    for k, v in pairs(props or {}) do
+        obj[k] = v
     end
 
     obj.Parent = parent
     return obj
 end
 
-local function Corner(obj, radius)
+local function Corner(parent, radius)
     New("UICorner", {
         CornerRadius = UDim.new(0, radius or 8)
-    }, obj)
+    }, parent)
 end
 
-local function Stroke(obj, color, thickness)
+local function Stroke(parent, color, thickness)
     New("UIStroke", {
-        Color = color or Color3.fromRGB(65, 180, 255),
+        Color = color or PURPLE,
         Thickness = thickness or 1
-    }, obj)
+    }, parent)
 end
 
-local function MakeTween(obj, duration, properties)
-    local tween = TweenService:Create(
+local function Tween(obj, duration, props)
+    local tw = TweenService:Create(
         obj,
         TweenInfo.new(duration, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
-        properties
+        props
     )
-    tween:Play()
-    return tween
+    tw:Play()
+    return tw
 end
 
---========================================================
+local function Label(parent, text, size, position, textSize)
+    return New("TextLabel", {
+        BackgroundTransparency = 1,
+        Text = text,
+        Size = size,
+        Position = position,
+        Font = Enum.Font.GothamBold,
+        TextSize = textSize or 14,
+        TextColor3 = WHITE,
+        TextXAlignment = Enum.TextXAlignment.Left
+    }, parent)
+end
+
+local function Button(parent, text, size, position)
+    local b = New("TextButton", {
+        Size = size,
+        Position = position,
+        BackgroundColor3 = CARD,
+        Text = text,
+        TextColor3 = WHITE,
+        Font = Enum.Font.GothamBold,
+        TextSize = 12,
+        AutoButtonColor = false
+    }, parent)
+
+    Corner(b, 7)
+    Stroke(b, PURPLE, 1)
+
+    b.MouseEnter:Connect(function()
+        Tween(b, 0.15, {
+            BackgroundColor3 = DARK_PURPLE
+        })
+    end)
+
+    b.MouseLeave:Connect(function()
+        Tween(b, 0.15, {
+            BackgroundColor3 = CARD
+        })
+    end)
+
+    return b
+end
+
+local function Input(parent, placeholder, size, position, default)
+    local box = New("TextBox", {
+        Size = size,
+        Position = position,
+        BackgroundColor3 = BG,
+        Text = tostring(default or ""),
+        PlaceholderText = placeholder,
+        TextColor3 = WHITE,
+        PlaceholderColor3 = MUTED,
+        Font = Enum.Font.Gotham,
+        TextSize = 13,
+        ClearTextOnFocus = false
+    }, parent)
+
+    Corner(box, 6)
+    Stroke(box, PURPLE, 1)
+
+    return box
+end
+
+local function MakeCard(parent, y, height)
+    local card = New("Frame", {
+        Size = UDim2.new(1, -16, 0, height),
+        Position = UDim2.fromOffset(8, y),
+        BackgroundColor3 = PANEL
+    }, parent)
+
+    Corner(card, 9)
+    Stroke(card, Color3.fromRGB(90, 55, 125), 1)
+
+    return card
+end
+
+--==================================================
 -- INTRO
---========================================================
+--==================================================
 
 local Intro = New("Frame", {
-    Size = UDim2.fromOffset(12, 12),
-    Position = UDim2.fromScale(0.5, 0.5),
-    AnchorPoint = Vector2.new(0.5, 0.5),
-    BackgroundColor3 = Color3.fromRGB(20, 20, 30),
-    BorderSizePixel = 0
-}, Gui)
+    Size = UDim2.fromOffset(0, 0),
+    Position = UDim2.new(0.5, 0, 0.5, 0),
+    BackgroundColor3 = BG,
+    ClipsDescendants = true
+}, ScreenGui)
 
 Corner(Intro, 15)
+Stroke(Intro, PURPLE, 2)
 
-MakeTween(Intro, 0.65, {
-    Size = UDim2.fromOffset(430, 230)
-})
+local IntroTitle = Label(
+    Intro,
+    "VULITQPHUB",
+    UDim2.new(1, 0, 0, 45),
+    UDim2.fromOffset(0, 45),
+    25
+)
+IntroTitle.TextXAlignment = Enum.TextXAlignment.Center
+IntroTitle.TextColor3 = PURPLE
 
-task.wait(0.7)
+local IntroSub = Label(
+    Intro,
+    "by sarry_fixe",
+    UDim2.new(1, 0, 0, 25),
+    UDim2.fromOffset(0, 90),
+    13
+)
+IntroSub.TextXAlignment = Enum.TextXAlignment.Center
+IntroSub.TextColor3 = MUTED
 
-local IntroTitle = New("TextLabel", {
-    Size = UDim2.new(1, 0, 0, 55),
-    Position = UDim2.fromOffset(0, 25),
-    BackgroundTransparency = 1,
-    Text = "VULITQPHUB",
-    TextColor3 = Color3.fromRGB(70, 200, 255),
-    Font = Enum.Font.GothamBlack,
-    TextSize = 28
-}, Intro)
+local IntroDot = New("Frame", {
+    Size = UDim2.fromOffset(10, 10),
+    Position = UDim2.new(0.5, -5, 0.5, -5),
+    BackgroundColor3 = PURPLE
+}, ScreenGui)
+Corner(IntroDot, 50)
 
-local IntroSub = New("TextLabel", {
-    Size = UDim2.new(1, 0, 0, 25),
-    Position = UDim2.fromOffset(0, 78),
-    BackgroundTransparency = 1,
-    Text = "by sarry_fixe",
-    TextColor3 = Color3.fromRGB(210, 210, 220),
-    Font = Enum.Font.Gotham,
-    TextSize = 14
-}, Intro)
-
-local LoadingBG = New("Frame", {
-    Size = UDim2.new(0.75, 0, 0, 12),
-    Position = UDim2.new(0.125, 0, 0.72, 0),
-    BackgroundColor3 = Color3.fromRGB(45, 45, 60),
-    BorderSizePixel = 0
-}, Intro)
-Corner(LoadingBG, 10)
-
-local LoadingBar = New("Frame", {
-    Size = UDim2.new(0, 0, 1, 0),
-    BackgroundColor3 = Color3.fromRGB(0, 180, 255),
-    BorderSizePixel = 0
-}, LoadingBG)
-Corner(LoadingBar, 10)
-
-local LoadingText = New("TextLabel", {
-    Size = UDim2.new(1, 0, 0, 25),
-    Position = UDim2.new(0, 0, 0.80, 0),
-    BackgroundTransparency = 1,
-    Text = "Loading 0%",
-    TextColor3 = Color3.new(1, 1, 1),
-    Font = Enum.Font.Gotham,
-    TextSize = 12
-}, Intro)
-
-for i = 1, 100 do
-    LoadingBar.Size = UDim2.new(i / 100, 0, 1, 0)
-    LoadingText.Text = "Loading " .. i .. "%"
-    task.wait(0.018)
-end
-
-MakeTween(Intro, 0.35, {
-    BackgroundTransparency = 1
+Tween(IntroDot, 0.35, {
+    Size = UDim2.fromOffset(24, 24),
+    Position = UDim2.new(0.5, -12, 0.5, -12)
 })
 
 task.wait(0.4)
+
+Tween(IntroDot, 0.3, {
+    Size = UDim2.fromOffset(0, 0)
+})
+
+Tween(Intro, 0.6, {
+    Size = UDim2.fromOffset(430, 230),
+    Position = UDim2.new(0.5, -215, 0.5, -115)
+})
+
+task.wait(0.8)
+IntroDot:Destroy()
+
+--==================================================
+-- LOADING
+--==================================================
+
+local LoadingText = Label(
+    Intro,
+    "LOADING...",
+    UDim2.new(1, -40, 0, 20),
+    UDim2.fromOffset(20, 155),
+    12
+)
+LoadingText.TextColor3 = PURPLE
+
+local LoadingBack = New("Frame", {
+    Size = UDim2.new(1, -40, 0, 9),
+    Position = UDim2.fromOffset(20, 185),
+    BackgroundColor3 = CARD
+}, Intro)
+Corner(LoadingBack, 10)
+
+local LoadingBar = New("Frame", {
+    Size = UDim2.new(0, 0, 1, 0),
+    BackgroundColor3 = PURPLE
+}, LoadingBack)
+Corner(LoadingBar, 10)
+
+for i = 1, 100 do
+    LoadingBar.Size = UDim2.new(i / 100, 0, 1, 0)
+    LoadingText.Text = "LOADING... " .. i .. "%"
+    task.wait(0.018)
+end
+
+Tween(Intro, 0.3, {
+    BackgroundTransparency = 1
+})
+task.wait(0.35)
 Intro:Destroy()
 
---========================================================
+--==================================================
 -- KEY SYSTEM
---========================================================
+--==================================================
 
 local KeyFrame = New("Frame", {
     Size = UDim2.fromOffset(430, 290),
-    Position = UDim2.fromScale(0.5, 0.5),
-    AnchorPoint = Vector2.new(0.5, 0.5),
-    BackgroundColor3 = Color3.fromRGB(20, 20, 30),
-    BorderSizePixel = 0
-}, Gui)
-Corner(KeyFrame, 12)
-Stroke(KeyFrame)
+    Position = UDim2.new(0.5, -215, 0.5, -145),
+    BackgroundColor3 = BG
+}, ScreenGui)
 
-New("TextLabel", {
-    Size = UDim2.new(1, 0, 0, 55),
-    BackgroundTransparency = 1,
-    Text = "VULITQPHUB KEY SYSTEM",
-    TextColor3 = Color3.fromRGB(70, 200, 255),
-    Font = Enum.Font.GothamBlack,
-    TextSize = 20
-}, KeyFrame)
+Corner(KeyFrame, 14)
+Stroke(KeyFrame, PURPLE, 2)
 
-New("TextLabel", {
-    Size = UDim2.new(1, -30, 0, 30),
-    Position = UDim2.fromOffset(15, 55),
-    BackgroundTransparency = 1,
-    Text = "Enter your key to continue",
-    TextColor3 = Color3.fromRGB(200, 200, 210),
-    Font = Enum.Font.Gotham,
-    TextSize = 13
-}, KeyFrame)
+local KeyTitle = Label(
+    KeyFrame,
+    "VULITQPHUB | KEY SYSTEM",
+    UDim2.new(1, -30, 0, 35),
+    UDim2.fromOffset(15, 15),
+    17
+)
+KeyTitle.TextColor3 = PURPLE
 
-local KeyBox = New("TextBox", {
-    Size = UDim2.new(1, -50, 0, 42),
-    Position = UDim2.fromOffset(25, 100),
-    BackgroundColor3 = Color3.fromRGB(38, 38, 52),
-    TextColor3 = Color3.new(1, 1, 1),
-    PlaceholderText = "Enter key here...",
-    Text = "",
-    ClearTextOnFocus = false,
-    Font = Enum.Font.Gotham,
-    TextSize = 14
-}, KeyFrame)
-Corner(KeyBox, 8)
+Label(
+    KeyFrame,
+    "Enter your key to continue",
+    UDim2.new(1, -30, 0, 25),
+    UDim2.fromOffset(15, 55),
+    12
+).TextColor3 = MUTED
 
-local GetKeyButton = New("TextButton", {
-    Size = UDim2.new(0.42, 0, 0, 40),
-    Position = UDim2.new(0.06, 0, 0, 165),
-    BackgroundColor3 = Color3.fromRGB(45, 100, 160),
-    Text = "GET KEY",
-    TextColor3 = Color3.new(1, 1, 1),
-    Font = Enum.Font.GothamBold,
-    TextSize = 13
-}, KeyFrame)
-Corner(GetKeyButton, 8)
+local KeyInput = Input(
+    KeyFrame,
+    "Enter key here...",
+    UDim2.new(1, -40, 0, 40),
+    UDim2.fromOffset(20, 100),
+    ""
+)
 
-local VerifyButton = New("TextButton", {
-    Size = UDim2.new(0.42, 0, 0, 40),
-    Position = UDim2.new(0.52, 0, 0, 165),
-    BackgroundColor3 = Color3.fromRGB(0, 145, 100),
-    Text = "VERIFY",
-    TextColor3 = Color3.new(1, 1, 1),
-    Font = Enum.Font.GothamBold,
-    TextSize = 13
-}, KeyFrame)
-Corner(VerifyButton, 8)
+local GetKeyButton = Button(
+    KeyFrame,
+    "GET KEY",
+    UDim2.new(0.44, 0, 0, 38),
+    UDim2.fromOffset(20, 160)
+)
 
-local KeyStatus = New("TextLabel", {
-    Size = UDim2.new(1, -30, 0, 45),
-    Position = UDim2.fromOffset(15, 220),
-    BackgroundTransparency = 1,
-    Text = "Waiting for key...",
-    TextColor3 = Color3.fromRGB(200, 200, 200),
-    Font = Enum.Font.Gotham,
-    TextSize = 12,
-    TextWrapped = true
-}, KeyFrame)
+local VerifyButton = Button(
+    KeyFrame,
+    "VERIFY",
+    UDim2.new(0.44, 0, 0, 38),
+    UDim2.new(0.56, -5, 0, 160)
+)
 
-GetKeyButton.Activated:Connect(function()
-    KeyStatus.Text = "GET KEY: " .. GET_KEY
+local KeyStatus = Label(
+    KeyFrame,
+    "Status: Waiting for key",
+    UDim2.new(1, -40, 0, 25),
+    UDim2.fromOffset(20, 215),
+    12
+)
+KeyStatus.TextColor3 = MUTED
 
-    if setclipboard then
-        pcall(setclipboard, GET_KEY)
-    end
+GetKeyButton.MouseButton1Click:Connect(function()
+    pcall(function()
+        GuiService:OpenBrowserWindow(GET_KEY)
+    end)
 end)
 
 local Verified = false
 
-VerifyButton.Activated:Connect(function()
-    if KeyBox.Text == KEY then
+VerifyButton.MouseButton1Click:Connect(function()
+    if KeyInput.Text == KEY then
         Verified = true
-        KeyStatus.Text = "Key verified!"
-        KeyStatus.TextColor3 = Color3.fromRGB(0, 255, 130)
-
-        task.wait(0.4)
-        KeyFrame:Destroy()
+        KeyStatus.Text = "Status: Correct key!"
+        KeyStatus.TextColor3 = PURPLE
+        Tween(KeyFrame, 0.25, {
+            BackgroundColor3 = Color3.fromRGB(40, 25, 60)
+        })
     else
-        KeyStatus.Text = "Wrong key! Try again."
-        KeyStatus.TextColor3 = Color3.fromRGB(255, 75, 75)
+        KeyStatus.Text = "Status: Incorrect key!"
+        KeyStatus.TextColor3 = Color3.fromRGB(255, 90, 120)
     end
 end)
 
 repeat task.wait() until Verified
 
---========================================================
+KeyFrame:Destroy()
+
+--==================================================
 -- MAIN MENU
---========================================================
+--==================================================
 
-local Main = New("Frame", {
-    Size = UDim2.fromOffset(700, 500),
-    Position = UDim2.new(0.5, -350, 0.5, -250),
-    BackgroundColor3 = Color3.fromRGB(19, 19, 28),
-    BorderSizePixel = 0
-}, Gui)
-Corner(Main, 12)
-Stroke(Main)
+MainFrame = New("Frame", {
+    Size = UDim2.fromOffset(560, 410),
+    Position = UDim2.new(0.5, -280, 0.5, -205),
+    BackgroundColor3 = BG,
+    ClipsDescendants = true
+}, ScreenGui)
 
--- Header
+Corner(MainFrame, 13)
+Stroke(MainFrame, PURPLE, 2)
+
+-- HEADER
+
 local Header = New("Frame", {
-    Size = UDim2.new(1, 0, 0, 52),
-    BackgroundColor3 = Color3.fromRGB(29, 29, 43),
-    BorderSizePixel = 0
-}, Main)
-Corner(Header, 12)
+    Size = UDim2.new(1, 0, 0, 42),
+    BackgroundColor3 = Color3.fromRGB(24, 15, 38)
+}, MainFrame)
 
-New("TextLabel", {
-    Size = UDim2.new(1, -150, 1, 0),
-    Position = UDim2.fromOffset(15, 0),
-    BackgroundTransparency = 1,
-    Text = "VULITQPHUB V2.0",
-    TextColor3 = Color3.fromRGB(70, 200, 255),
-    TextXAlignment = Enum.TextXAlignment.Left,
-    Font = Enum.Font.GothamBlack,
-    TextSize = 19
-}, Header)
+local HeaderTitle = Label(
+    Header,
+    "VULITQPHUB",
+    UDim2.fromOffset(200, 42),
+    UDim2.fromOffset(14, 0),
+    17
+)
+HeaderTitle.TextColor3 = PURPLE
 
-local MinButton = New("TextButton", {
-    Size = UDim2.fromOffset(38, 34),
-    Position = UDim2.new(1, -85, 0, 9),
-    BackgroundColor3 = Color3.fromRGB(55, 75, 110),
-    Text = "-",
-    TextColor3 = Color3.new(1, 1, 1),
-    Font = Enum.Font.GothamBold,
-    TextSize = 22
-}, Header)
-Corner(MinButton, 7)
-
-local CloseButton = New("TextButton", {
-    Size = UDim2.fromOffset(38, 34),
-    Position = UDim2.new(1, -43, 0, 9),
-    BackgroundColor3 = Color3.fromRGB(170, 50, 60),
-    Text = "X",
-    TextColor3 = Color3.new(1, 1, 1),
-    Font = Enum.Font.GothamBold,
-    TextSize = 15
-}, Header)
-Corner(CloseButton, 7)
-
--- Sidebar
-local Sidebar = New("Frame", {
-    Size = UDim2.new(0, 155, 1, -65),
-    Position = UDim2.fromOffset(10, 58),
-    BackgroundColor3 = Color3.fromRGB(27, 27, 40),
-    BorderSizePixel = 0
-}, Main)
-Corner(Sidebar, 9)
-
-New("TextLabel", {
-    Size = UDim2.new(1, 0, 0, 45),
-    BackgroundTransparency = 1,
-    Text = "MENU",
-    TextColor3 = Color3.fromRGB(90, 190, 255),
-    Font = Enum.Font.GothamBold,
-    TextSize = 16
-}, Sidebar)
-
--- Content
-local Content = New("Frame", {
-    Size = UDim2.new(1, -185, 1, -70),
-    Position = UDim2.fromOffset(175, 60),
-    BackgroundColor3 = Color3.fromRGB(24, 24, 35),
-    BorderSizePixel = 0
-}, Main)
-Corner(Content, 9)
-
-local PageTitle = New("TextLabel", {
-    Size = UDim2.new(1, -25, 0, 45),
-    Position = UDim2.fromOffset(15, 5),
-    BackgroundTransparency = 1,
-    Text = "TRANG CHỦ",
-    TextColor3 = Color3.fromRGB(80, 200, 255),
-    TextXAlignment = Enum.TextXAlignment.Left,
-    Font = Enum.Font.GothamBold,
-    TextSize = 18
-}, Content)
-
-local Pages = {}
-local TabButtons = {}
-
-local function CreatePage(name)
-    local page = New("ScrollingFrame", {
-        Name = name,
-        Size = UDim2.new(1, -20, 1, -60),
-        Position = UDim2.fromOffset(10, 52),
-        BackgroundTransparency = 1,
-        BorderSizePixel = 0,
-        ScrollBarThickness = 4,
-        AutomaticCanvasSize = Enum.AutomaticSize.Y,
-        CanvasSize = UDim2.new(0, 0, 0, 0),
-        Visible = false
-    }, Content)
-
-    local layout = New("UIListLayout", {
-        Padding = UDim.new(0, 10),
-        SortOrder = Enum.SortOrder.LayoutOrder
-    }, page)
-
-    Pages[name] = page
-    return page
-end
-
-local HomePage = CreatePage("Home")
-local ChungPage = CreatePage("Chung")
-local FunctionPage = CreatePage("Function2")
-local SettingsPage = CreatePage("Settings")
-
-local function SwitchTab(name, title)
-    for pageName, page in pairs(Pages) do
-        page.Visible = (pageName == name)
-    end
-
-    -- Chỉ đổi PageTitle, không đụng tới tiêu đề FLY
-    PageTitle.Text = title
-
-    for tabName, button in pairs(TabButtons) do
-        button.BackgroundColor3 =
-            (tabName == name)
-            and Color3.fromRGB(0, 115, 175)
-            or Color3.fromRGB(42, 42, 58)
-    end
-end
-
-local function CreateTab(name, title, order)
-    local button = New("TextButton", {
-        Size = UDim2.new(1, -16, 0, 42),
-        Position = UDim2.fromOffset(8, 48 + (order - 1) * 49),
-        BackgroundColor3 = Color3.fromRGB(42, 42, 58),
-        Text = name,
-        TextColor3 = Color3.new(1, 1, 1),
-        Font = Enum.Font.GothamBold,
-        TextSize = 13
-    }, Sidebar)
-    Corner(button, 7)
-
-    TabButtons[name] = button
-
-    button.Activated:Connect(function()
-        SwitchTab(name, title)
-    end)
-end
-
-CreateTab("Trang chủ", "TRANG CHỦ", 1)
-CreateTab("Chung", "CHUNG", 2)
-CreateTab("Chức năng 2", "CHỨC NĂNG 2", 3)
-CreateTab("Cài đặt", "CÀI ĐẶT", 4)
-
---========================================================
--- UI HELPERS
---========================================================
-
-local function Section(parent, text)
-    local frame = New("Frame", {
-        Size = UDim2.new(1, -5, 0, 40),
-        BackgroundColor3 = Color3.fromRGB(37, 37, 54),
-        BorderSizePixel = 0
-    }, parent)
-    Corner(frame, 7)
-
-    New("TextLabel", {
-        Size = UDim2.new(1, -15, 1, 0),
-        Position = UDim2.fromOffset(12, 0),
-        BackgroundTransparency = 1,
-        Text = text,
-        TextColor3 = Color3.fromRGB(80, 200, 255),
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Font = Enum.Font.GothamBold,
-        TextSize = 15
-    }, frame)
-
-    return frame
-end
-
-local function ActionButton(parent, text)
-    local button = New("TextButton", {
-        Size = UDim2.new(1, -5, 0, 40),
-        BackgroundColor3 = Color3.fromRGB(48, 48, 67),
-        Text = text,
-        TextColor3 = Color3.new(1, 1, 1),
-        Font = Enum.Font.GothamBold,
-        TextSize = 14
-    }, parent)
-    Corner(button, 7)
-    return button
-end
-
-local function TextInput(parent, defaultText, placeholder)
-    local input = New("TextBox", {
-        Size = UDim2.new(1, -5, 0, 38),
-        BackgroundColor3 = Color3.fromRGB(35, 35, 49),
-        TextColor3 = Color3.new(1, 1, 1),
-        PlaceholderText = placeholder or "Nhập giá trị...",
-        Text = tostring(defaultText),
-        ClearTextOnFocus = false,
-        Font = Enum.Font.Gotham,
-        TextSize = 14
-    }, parent)
-    Corner(input, 7)
-    return input
-end
-
---========================================================
--- SLIDER
---========================================================
-
-local function CreateSlider(parent, title, minValue, maxValue, startValue, callback)
-    local container = New("Frame", {
-        Size = UDim2.new(1, -5, 0, 76),
-        BackgroundColor3 = Color3.fromRGB(34, 34, 48),
-        BorderSizePixel = 0
-    }, parent)
-    Corner(container, 7)
-
-    local label = New("TextLabel", {
-        Size = UDim2.new(1, -20, 0, 25),
-        Position = UDim2.fromOffset(10, 3),
-        BackgroundTransparency = 1,
-        Text = title .. ": " .. startValue,
-        TextColor3 = Color3.new(1, 1, 1),
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Font = Enum.Font.GothamBold,
-        TextSize = 13
-    }, container)
-
-    local track = New("TextButton", {
-        Size = UDim2.new(1, -24, 0, 12),
-        Position = UDim2.fromOffset(12, 43),
-        BackgroundColor3 = Color3.fromRGB(60, 60, 76),
-        Text = "",
-        AutoButtonColor = false
-    }, container)
-    Corner(track, 10)
-
-    local fill = New("Frame", {
-        Size = UDim2.new((startValue - minValue) / (maxValue - minValue), 0, 1, 0),
-        BackgroundColor3 = Color3.fromRGB(0, 175, 255),
-        BorderSizePixel = 0
-    }, track)
-    Corner(fill, 10)
-
-    local knob = New("Frame", {
-        Size = UDim2.fromOffset(18, 18),
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        Position = UDim2.new((startValue - minValue) / (maxValue - minValue), 0, 0.5, 0),
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BorderSizePixel = 0
-    }, track)
-    Corner(knob, 20)
-
-    local value = startValue
-    local sliding = false
-
-    local function SetValue(newValue)
-        value = math.clamp(math.floor(newValue), minValue, maxValue)
-
-        local percent = (value - minValue) / (maxValue - minValue)
-
-        fill.Size = UDim2.new(percent, 0, 1, 0)
-        knob.Position = UDim2.new(percent, 0, 0.5, 0)
-        label.Text = title .. ": " .. value
-
-        callback(value)
-    end
-
-    local function UpdateFromInput(input)
-        local percent = math.clamp(
-            (input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X,
-            0, 1
-        )
-
-        SetValue(minValue + percent * (maxValue - minValue))
-    end
-
-    track.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
-            sliding = true
-            UpdateFromInput(input)
-        end
-    end)
-
-    UIS.InputChanged:Connect(function(input)
-        if sliding and (
-            input.UserInputType == Enum.UserInputType.MouseMovement
-            or input.UserInputType == Enum.UserInputType.Touch
-        ) then
-            UpdateFromInput(input)
-        end
-    end)
-
-    UIS.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
-            sliding = false
-        end
-    end)
-
-    return SetValue
-end
-
---========================================================
--- HOME PAGE
---========================================================
-
-Section(HomePage, "WELCOME TO VULITQPHUB")
-
-local Welcome = New("TextLabel", {
-    Size = UDim2.new(1, -5, 0, 95),
-    BackgroundColor3 = Color3.fromRGB(34, 34, 48),
-    Text = "Script do người Việt Nam làm nên hơi lỗi nha\nJoin dis để xem update script\nJoin discord me ❤️",
-    TextColor3 = Color3.fromRGB(220, 220, 230),
-    Font = Enum.Font.Gotham,
-    TextSize = 14,
-    TextWrapped = true
-}, HomePage)
-Corner(Welcome, 8)
-
-local DiscordButton = ActionButton(HomePage, "JOIN DISCORD")
-DiscordButton.Activated:Connect(function()
-    pcall(function()
-        GuiService:OpenBrowserWindow(DISCORD)
-    end)
-end)
-
---========================================================
--- CHUNG PAGE - FLY
---========================================================
-
-Section(ChungPage, "FLY")
-
-local FlyButton = ActionButton(ChungPage, "FLY: OFF")
-
-local FlyInput = TextInput(ChungPage, FlySpeed, "Fly speed 1 - 1000")
-
-local SetFlySlider = CreateSlider(
-    ChungPage,
-    "FLY SPEED",
-    1,
-    1000,
-    FlySpeed,
-    function(value)
-        FlySpeed = value
-        FlyInput.Text = tostring(value)
-    end
+local MinimizeButton = Button(
+    Header,
+    "—",
+    UDim2.fromOffset(30, 27),
+    UDim2.new(1, -75, 0, 7)
 )
 
-FlyInput.FocusLost:Connect(function()
-    local value = tonumber(FlyInput.Text)
-
-    if value then
-        SetFlySlider(math.clamp(math.floor(value), 1, 1000))
-    else
-        FlyInput.Text = tostring(FlySpeed)
-    end
-end)
-
-local UpButton = ActionButton(ChungPage, "▲ BAY LÊN")
-local DownButton = ActionButton(ChungPage, "▼ BAY XUỐNG")
-
-local function HoldButton(button, callback)
-    button.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.Touch
-        or input.UserInputType == Enum.UserInputType.MouseButton1 then
-            callback(true)
-        end
-    end)
-
-    button.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.Touch
-        or input.UserInputType == Enum.UserInputType.MouseButton1 then
-            callback(false)
-        end
-    end)
-end
-
-HoldButton(UpButton, function(value)
-    UpHeld = value
-end)
-
-HoldButton(DownButton, function(value)
-    DownHeld = value
-end)
-
---========================================================
--- FLY ENGINE
---========================================================
-
-local function StopFly()
-    FlyEnabled = false
-
-    if FlyConnection then
-        FlyConnection:Disconnect()
-        FlyConnection = nil
-    end
-
-    if FlyVelocity then
-        FlyVelocity:Destroy()
-        FlyVelocity = nil
-    end
-
-    if FlyAttachment then
-        FlyAttachment:Destroy()
-        FlyAttachment = nil
-    end
-
-    if Humanoid then
-        Humanoid.PlatformStand = false
-        Humanoid.AutoRotate = true
-        Humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
-    end
-
-    FlyButton.Text = "FLY: OFF"
-    FlyButton.BackgroundColor3 = Color3.fromRGB(48, 48, 67)
-end
-
-local function StartFly()
-    if not Root or not Humanoid then return end
-
-    FlyEnabled = true
-
-    FlyButton.Text = "FLY: ON"
-    FlyButton.BackgroundColor3 = Color3.fromRGB(0, 145, 90)
-
-    FlyAttachment = Instance.new("Attachment")
-    FlyAttachment.Parent = Root
-
-    FlyVelocity = Instance.new("LinearVelocity")
-    FlyVelocity.Attachment0 = FlyAttachment
-    FlyVelocity.RelativeTo = Enum.ActuatorRelativeTo.World
-    FlyVelocity.MaxForce = 1000000
-    FlyVelocity.VectorVelocity = Vector3.zero
-    FlyVelocity.Parent = Root
-
-    Humanoid.AutoRotate = false
-    Humanoid.PlatformStand = true
-
-    FlyConnection = RunService.Heartbeat:Connect(function()
-        if not FlyEnabled or not Root or not Root.Parent then
-            StopFly()
-            return
-        end
-
-        local camera = workspace.CurrentCamera
-        local forward = Vector3.new(
-            camera.CFrame.LookVector.X,
-            0,
-            camera.CFrame.LookVector.Z
-        )
-
-        local right = Vector3.new(
-            camera.CFrame.RightVector.X,
-            0,
-            camera.CFrame.RightVector.Z
-        )
-
-        if forward.Magnitude > 0 then
-            forward = forward.Unit
-        end
-
-        if right.Magnitude > 0 then
-            right = right.Unit
-        end
-
-        local horizontal = Vector3.zero
-
-        if UIS:IsKeyDown(Enum.KeyCode.W) then
-            horizontal += forward
-        end
-        if UIS:IsKeyDown(Enum.KeyCode.S) then
-            horizontal -= forward
-        end
-        if UIS:IsKeyDown(Enum.KeyCode.D) then
-            horizontal += right
-        end
-        if UIS:IsKeyDown(Enum.KeyCode.A) then
-            horizontal -= right
-        end
-
-        -- Hỗ trợ joystick trên điện thoại
-        if horizontal.Magnitude == 0 and Humanoid.MoveDirection.Magnitude > 0 then
-            horizontal = Vector3.new(
-                Humanoid.MoveDirection.X,
-                0,
-                Humanoid.MoveDirection.Z
-            )
-        end
-
-        if horizontal.Magnitude > 1 then
-            horizontal = horizontal.Unit
-        end
-
-        local vertical = 0
-
-        if UpHeld or UIS:IsKeyDown(Enum.KeyCode.Space) then
-            vertical += 1
-        end
-
-        if DownHeld or UIS:IsKeyDown(Enum.KeyCode.LeftControl) then
-            vertical -= 1
-        end
-
-        FlyVelocity.VectorVelocity =
-            horizontal * FlySpeed + Vector3.new(0, vertical * FlySpeed, 0)
-    end)
-end
-
-FlyButton.Activated:Connect(function()
-    if FlyEnabled then
-        StopFly()
-    else
-        StartFly()
-    end
-end)
-
---========================================================
--- CHUNG PAGE - SPEED
---========================================================
-
-Section(ChungPage, "SPEED")
-
-local SpeedButton = ActionButton(ChungPage, "SPEED: OFF")
-
-local SpeedInput = TextInput(ChungPage, SpeedValue, "Speed 1 - 10000")
-
-local SetSpeedSlider = CreateSlider(
-    ChungPage,
-    "SPEED VALUE",
-    1,
-    10000,
-    SpeedValue,
-    function(value)
-        SpeedValue = value
-        SpeedInput.Text = tostring(value)
-
-        if SpeedEnabled and Humanoid then
-            Humanoid.WalkSpeed = SpeedValue
-        end
-    end
+local CloseButton = Button(
+    Header,
+    "X",
+    UDim2.fromOffset(30, 27),
+    UDim2.new(1, -38, 0, 7)
 )
 
-SpeedInput.FocusLost:Connect(function()
-    local value = tonumber(SpeedInput.Text)
-
-    if value then
-        SetSpeedSlider(math.clamp(math.floor(value), 1, 10000))
-    else
-        SpeedInput.Text = tostring(SpeedValue)
-    end
-end)
-
-SpeedButton.Activated:Connect(function()
-    SpeedEnabled = not SpeedEnabled
-
-    if SpeedEnabled then
-        Humanoid.WalkSpeed = SpeedValue
-        SpeedButton.Text = "SPEED: ON"
-        SpeedButton.BackgroundColor3 = Color3.fromRGB(0, 145, 90)
-    else
-        Humanoid.WalkSpeed = DefaultWalkSpeed
-        SpeedButton.Text = "SPEED: OFF"
-        SpeedButton.BackgroundColor3 = Color3.fromRGB(48, 48, 67)
-    end
-end)
-
---========================================================
--- CHUNG PAGE - NOCLIP
---========================================================
-
-Section(ChungPage, "NOCLIP")
-
-local NoclipButton = ActionButton(ChungPage, "NOCLIP: OFF")
-
-local function RestoreCollision()
-    for part, original in pairs(OriginalCollision) do
-        if part and part.Parent then
-            part.CanCollide = original
-        end
-    end
-
-    table.clear(OriginalCollision)
-end
-
-local function SetNoclip(enabled)
-    NoclipEnabled = enabled
-
-    if NoclipConnection then
-        NoclipConnection:Disconnect()
-        NoclipConnection = nil
-    end
-
-    if enabled then
-        NoclipConnection = RunService.Stepped:Connect(function()
-            if not Character then return end
-
-            for _, part in ipairs(Character:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    if OriginalCollision[part] == nil then
-                        OriginalCollision[part] = part.CanCollide
-                    end
-
-                    part.CanCollide = false
-                end
-            end
-        end)
-
-        NoclipButton.Text = "NOCLIP: ON"
-        NoclipButton.BackgroundColor3 = Color3.fromRGB(0, 145, 90)
-    else
-        RestoreCollision()
-
-        NoclipButton.Text = "NOCLIP: OFF"
-        NoclipButton.BackgroundColor3 = Color3.fromRGB(48, 48, 67)
-    end
-end
-
-NoclipButton.Activated:Connect(function()
-    SetNoclip(not NoclipEnabled)
-end)
-
---========================================================
--- FUNCTION 2 PAGE
---========================================================
-
-Section(FunctionPage, "CHỨC NĂNG 2")
-
-local FunctionInfo = New("TextLabel", {
-    Size = UDim2.new(1, -5, 0, 80),
-    BackgroundColor3 = Color3.fromRGB(34, 34, 48),
-    Text = "Khu vực dành cho các chức năng cập nhật sau.",
-    TextColor3 = Color3.fromRGB(220, 220, 230),
-    Font = Enum.Font.Gotham,
-    TextSize = 14,
-    TextWrapped = true
-}, FunctionPage)
-Corner(FunctionInfo, 8)
-
---========================================================
--- SETTINGS PAGE
---========================================================
-
-Section(SettingsPage, "CÀI ĐẶT")
-
-local InfoButton = ActionButton(SettingsPage, "VULITQPHUB V2.0")
-InfoButton.Activated:Connect(function()
-    InfoButton.Text = "BY SARRY_FIXE"
-    task.wait(1)
-    InfoButton.Text = "VULITQPHUB V2.0"
-end)
-
-local SettingsDiscord = ActionButton(SettingsPage, "DISCORD")
-SettingsDiscord.Activated:Connect(function()
-    pcall(function()
-        GuiService:OpenBrowserWindow(DISCORD)
-    end)
-end)
-
---========================================================
--- MINIMIZE / REOPEN
---========================================================
-
-local ReopenButton = New("TextButton", {
-    Size = UDim2.fromOffset(62, 62),
-    Position = UDim2.new(0, 20, 0.5, -31),
-    BackgroundColor3 = Color3.fromRGB(15, 110, 170),
-    Text = "V",
-    TextColor3 = Color3.new(1, 1, 1),
-    Font = Enum.Font.GothamBlack,
-    TextSize = 25,
-    Visible = false
-}, Gui)
-Corner(ReopenButton, 50)
-Stroke(ReopenButton)
-
-MinButton.Activated:Connect(function()
-    Main.Visible = false
-    ReopenButton.Visible = true
-end)
-
-ReopenButton.Activated:Connect(function()
-    Main.Visible = true
-    ReopenButton.Visible = false
-end)
-
---========================================================
 -- DRAG MENU
---========================================================
 
 local dragging = false
 local dragStart
-local startPosition
+local startPos
 
 Header.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1
-    or input.UserInputType == Enum.UserInputType.Touch then
+        or input.UserInputType == Enum.UserInputType.Touch then
+
         dragging = true
         dragStart = input.Position
-        startPosition = Main.Position
+        startPos = MainFrame.Position
     end
 end)
 
@@ -999,71 +449,781 @@ UIS.InputChanged:Connect(function(input)
     ) then
         local delta = input.Position - dragStart
 
-        Main.Position = UDim2.new(
-            startPosition.X.Scale,
-            startPosition.X.Offset + delta.X,
-            startPosition.Y.Scale,
-            startPosition.Y.Offset + delta.Y
+        MainFrame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
         )
     end
 end)
 
 UIS.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1
-    or input.UserInputType == Enum.UserInputType.Touch then
+        or input.UserInputType == Enum.UserInputType.Touch then
         dragging = false
     end
 end)
 
---========================================================
--- CHARACTER RESPAWN
---========================================================
+-- SIDEBAR
 
-Player.CharacterAdded:Connect(function(newCharacter)
-    StopFly()
+local Sidebar = New("Frame", {
+    Size = UDim2.new(0, 125, 1, -42),
+    Position = UDim2.fromOffset(0, 42),
+    BackgroundColor3 = Color3.fromRGB(23, 16, 36)
+}, MainFrame)
 
-    if NoclipConnection then
-        NoclipConnection:Disconnect()
-        NoclipConnection = nil
+local SideTitle = Label(
+    Sidebar,
+    "MENU",
+    UDim2.new(1, -20, 0, 30),
+    UDim2.fromOffset(12, 12),
+    12
+)
+SideTitle.TextColor3 = PURPLE
+
+local Content = New("Frame", {
+    Size = UDim2.new(1, -125, 1, -42),
+    Position = UDim2.fromOffset(125, 42),
+    BackgroundTransparency = 1
+}, MainFrame)
+
+local PageTitle = Label(
+    Content,
+    "TRANG CHỦ",
+    UDim2.new(1, -20, 0, 35),
+    UDim2.fromOffset(12, 5),
+    16
+)
+PageTitle.TextColor3 = PURPLE
+
+local Pages = {}
+local TabButtons = {}
+
+local function CreatePage(name)
+    local page = New("ScrollingFrame", {
+        Size = UDim2.new(1, 0, 1, -45),
+        Position = UDim2.fromOffset(0, 45),
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0,
+        ScrollBarThickness = 3,
+        ScrollBarImageColor3 = PURPLE,
+        CanvasSize = UDim2.new(0, 0, 0, 0),
+        Visible = false
+    }, Content)
+
+    local layout = New("UIListLayout", {
+        Padding = UDim.new(0, 9),
+        SortOrder = Enum.SortOrder.LayoutOrder
+    }, page)
+
+    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        page.CanvasSize = UDim2.new(
+            0, 0, 0,
+            layout.AbsoluteContentSize.Y + 15
+        )
+    end)
+
+    New("UIPadding", {
+        PaddingLeft = UDim.new(0, 8),
+        PaddingRight = UDim.new(0, 8),
+        PaddingTop = UDim.new(0, 5),
+        PaddingBottom = UDim.new(0, 10)
+    }, page)
+
+    Pages[name] = page
+    return page
+end
+
+local function CreateTab(name, order)
+    local button = Button(
+        Sidebar,
+        name,
+        UDim2.new(1, -16, 0, 36),
+        UDim2.fromOffset(8, 48 + (order - 1) * 44)
+    )
+
+    TabButtons[name] = button
+
+    button.MouseButton1Click:Connect(function()
+        for pageName, page in pairs(Pages) do
+            page.Visible = pageName == name
+        end
+
+        for tabName, tab in pairs(TabButtons) do
+            tab.BackgroundColor3 = tabName == name and DARK_PURPLE or CARD
+        end
+
+        PageTitle.Text = string.upper(name)
+    end)
+end
+
+local HomePage = CreatePage("Trang chủ")
+local CommonPage = CreatePage("Chung")
+local FunctionPage = CreatePage("Chức năng 2")
+local SettingsPage = CreatePage("Cài đặt")
+
+CreateTab("Trang chủ", 1)
+CreateTab("Chung", 2)
+CreateTab("Chức năng 2", 3)
+CreateTab("Cài đặt", 4)
+
+local function SwitchTab(name)
+    for pageName, page in pairs(Pages) do
+        page.Visible = pageName == name
     end
 
-    RestoreCollision()
-
-    Character = newCharacter
-    Humanoid = Character:WaitForChild("Humanoid")
-    Root = Character:WaitForChild("HumanoidRootPart")
-
-    DefaultWalkSpeed = Humanoid.WalkSpeed
-
-    if SpeedEnabled then
-        Humanoid.WalkSpeed = SpeedValue
+    for tabName, tab in pairs(TabButtons) do
+        tab.BackgroundColor3 = tabName == name and DARK_PURPLE or CARD
     end
 
-    if NoclipEnabled then
-        SetNoclip(true)
+    PageTitle.Text = string.upper(name)
+end
+
+SwitchTab("Trang chủ")
+
+--==================================================
+-- HOME PAGE
+--==================================================
+
+local HomeCard = MakeCard(HomePage, 0, 125)
+
+Label(
+    HomeCard,
+    "WELCOME TO VULITQPHUB",
+    UDim2.new(1, -20, 0, 25),
+    UDim2.fromOffset(12, 10),
+    15
+).TextColor3 = PURPLE
+
+Label(
+    HomeCard,
+    "Script do người Việt Nam làm nên nên hơi lỗi nha\nJoin dis để xem update script\nJoin discord me ❤️",
+    UDim2.new(1, -20, 0, 65),
+    UDim2.fromOffset(12, 40),
+    12
+).TextColor3 = MUTED
+
+local DiscordCard = MakeCard(HomePage, 0, 95)
+
+Label(
+    DiscordCard,
+    "DISCORD COMMUNITY",
+    UDim2.new(1, -20, 0, 22),
+    UDim2.fromOffset(12, 8),
+    13
+).TextColor3 = PURPLE
+
+Label(
+    DiscordCard,
+    "discord.gg/6cRkHcNTC",
+    UDim2.new(1, -20, 0, 20),
+    UDim2.fromOffset(12, 32),
+    12
+).TextColor3 = MUTED
+
+local CopyDiscord = Button(
+    DiscordCard,
+    "COPY DISCORD LINK",
+    UDim2.new(1, -24, 0, 30),
+    UDim2.fromOffset(12, 58)
+)
+
+CopyDiscord.MouseButton1Click:Connect(function()
+    if typeof(setclipboard) == "function" then
+        local success = pcall(setclipboard, DISCORD)
+
+        if success then
+            CopyDiscord.Text = "COPIED!"
+        else
+            CopyDiscord.Text = "COPY NOT AVAILABLE"
+        end
+    else
+        CopyDiscord.Text = "COPY NOT AVAILABLE"
     end
 end)
 
---========================================================
--- CLOSE
---========================================================
+--==================================================
+-- SLIDER HELPER
+--==================================================
 
-CloseButton.Activated:Connect(function()
-    StopFly()
-    SetNoclip(false)
+local function CreateSlider(parent, title, minValue, maxValue, defaultValue, callback)
+    local card = MakeCard(parent, 0, 88)
+
+    Label(
+        card,
+        title,
+        UDim2.new(1, -20, 0, 22),
+        UDim2.fromOffset(12, 7),
+        12
+    )
+
+    local valueLabel = Label(
+        card,
+        tostring(defaultValue),
+        UDim2.fromOffset(65, 22),
+        UDim2.new(1, -75, 0, 7),
+        12
+    )
+    valueLabel.TextXAlignment = Enum.TextXAlignment.Right
+    valueLabel.TextColor3 = PURPLE
+
+    local bar = New("Frame", {
+        Size = UDim2.new(1, -24, 0, 8),
+        Position = UDim2.fromOffset(12, 48),
+        BackgroundColor3 = BG
+    }, card)
+    Corner(bar, 8)
+
+    local fill = New("Frame", {
+        Size = UDim2.new(
+            (defaultValue - minValue) / (maxValue - minValue),
+            0, 1, 0
+        ),
+        BackgroundColor3 = PURPLE
+    }, bar)
+    Corner(fill, 8)
+
+    local knob = New("Frame", {
+        Size = UDim2.fromOffset(16, 16),
+        Position = UDim2.new(
+            (defaultValue - minValue) / (maxValue - minValue),
+            -8, 0.5, -8
+        ),
+        BackgroundColor3 = WHITE
+    }, bar)
+    Corner(knob, 50)
+    Stroke(knob, PURPLE, 2)
+
+    local value = defaultValue
+    local sliding = false
+
+    local function SetValue(v)
+        value = math.clamp(
+            math.floor(v + 0.5),
+            minValue,
+            maxValue
+        )
+
+        local percent = (value - minValue) / (maxValue - minValue)
+
+        fill.Size = UDim2.new(percent, 0, 1, 0)
+        knob.Position = UDim2.new(percent, -8, 0.5, -8)
+        valueLabel.Text = tostring(value)
+
+        callback(value)
+    end
+
+    local function UpdateFromX(x)
+        local percent = math.clamp(
+            (x - bar.AbsolutePosition.X) / bar.AbsoluteSize.X,
+            0,
+            1
+        )
+
+        SetValue(minValue + percent * (maxValue - minValue))
+    end
+
+    bar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+            sliding = true
+            UpdateFromX(input.Position.X)
+        end
+    end)
+
+    UIS.InputChanged:Connect(function(input)
+        if sliding and (
+            input.UserInputType == Enum.UserInputType.MouseMovement
+            or input.UserInputType == Enum.UserInputType.Touch
+        ) then
+            UpdateFromX(input.Position.X)
+        end
+    end)
+
+    UIS.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+            sliding = false
+        end
+    end)
+
+    return {
+        Set = SetValue,
+        Get = function()
+            return value
+        end
+    }
+end
+
+--==================================================
+-- COMMON PAGE - FLY
+--==================================================
+
+local FlyCard = MakeCard(CommonPage, 0, 150)
+
+local FlyTitle = Label(
+    FlyCard,
+    "FLY",
+    UDim2.new(1, -20, 0, 25),
+    UDim2.fromOffset(12, 8),
+    15
+)
+FlyTitle.TextColor3 = PURPLE
+
+Label(
+    FlyCard,
+    "Bay len / di chuyen bang WASD, Space va Ctrl",
+    UDim2.new(1, -20, 0, 20),
+    UDim2.fromOffset(12, 34),
+    10
+).TextColor3 = MUTED
+
+FlyToggleButton = Button(
+    FlyCard,
+    "FLY: OFF",
+    UDim2.fromOffset(105, 32),
+    UDim2.fromOffset(12, 65)
+)
+
+local FlyUpButton = Button(
+    FlyCard,
+    "UP",
+    UDim2.fromOffset(75, 32),
+    UDim2.fromOffset(128, 65)
+)
+
+local FlyDownButton = Button(
+    FlyCard,
+    "DOWN",
+    UDim2.fromOffset(75, 32),
+    UDim2.fromOffset(210, 65)
+)
+
+local FlySpeedInput = Input(
+    FlyCard,
+    "Fly speed",
+    UDim2.fromOffset(100, 30),
+    UDim2.fromOffset(295, 66),
+    FlySpeed
+)
+
+local function StopFly()
+    FlyEnabled = false
+    FlyUp = false
+    FlyDown = false
+
+    if FlyVelocity then
+        FlyVelocity:Destroy()
+        FlyVelocity = nil
+    end
+
+    if FlyGyro then
+        FlyGyro:Destroy()
+        FlyGyro = nil
+    end
 
     if Humanoid then
-        Humanoid.WalkSpeed = DefaultWalkSpeed
+        Humanoid.PlatformStand = false
+        Humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
     end
 
-    SpeedEnabled = false
-    Gui:Destroy()
+    if FlyToggleButton then
+        FlyToggleButton.Text = "FLY: OFF"
+        FlyToggleButton.BackgroundColor3 = CARD
+    end
+end
+
+local function StartFly()
+    if not RootPart or not Humanoid then
+        return
+    end
+
+    FlyEnabled = true
+    FlyToggleButton.Text = "FLY: ON"
+    FlyToggleButton.BackgroundColor3 = DARK_PURPLE
+
+    Humanoid.PlatformStand = true
+
+    FlyVelocity = Instance.new("BodyVelocity")
+    FlyVelocity.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+    FlyVelocity.P = 1e5
+    FlyVelocity.Velocity = Vector3.zero
+    FlyVelocity.Parent = RootPart
+
+    FlyGyro = Instance.new("BodyGyro")
+    FlyGyro.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
+    FlyGyro.P = 1e5
+    FlyGyro.CFrame = RootPart.CFrame
+    FlyGyro.Parent = RootPart
+end
+
+FlyToggleButton.MouseButton1Click:Connect(function()
+    if FlyEnabled then
+        StopFly()
+    else
+        StartFly()
+    end
 end)
 
---========================================================
--- START
---========================================================
+FlyUpButton.MouseButton1Down:Connect(function()
+    FlyUp = true
+end)
 
-SwitchTab("Trang chủ", "TRANG CHỦ")
+FlyUpButton.MouseButton1Up:Connect(function()
+    FlyUp = true
+end)
 
-print("VULITQPHUB V2.0 LOADED")
+FlyDownButton.MouseButton1Up:Connect(function()
+    FlyDown = false
+end)
+
+FlySpeedInput.FocusLost:Connect(function()
+    local v = tonumber(FlySpeedInput.Text)
+
+    if v then
+        FlySpeed = math.clamp(math.floor(v), 1, 1000)
+    end
+
+    FlySpeedInput.Text = tostring(FlySpeed)
+end)
+
+--==================================================
+-- FLY MOVEMENT
+--==================================================
+
+RunService.RenderStepped:Connect(function()
+    if not FlyEnabled or not FlyVelocity or not RootPart then
+        return
+    end
+
+    local camera = workspace.CurrentCamera
+    if not camera then
+        return
+    end
+
+    local move = Vector3.zero
+
+    if Humanoid then
+        move = Humanoid.MoveDirection
+    end
+
+    local vertical = 0
+
+    if UIS:IsKeyDown(Enum.KeyCode.Space) or FlyUp then
+        vertical += 1
+    end
+
+    if UIS:IsKeyDown(Enum.KeyCode.LeftControl)
+        or UIS:IsKeyDown(Enum.KeyCode.C)
+        or FlyDown then
+        vertical -= 1
+    end
+
+    local direction = move * FlySpeed
+    direction += Vector3.new(0, vertical * FlySpeed, 0)
+
+    FlyVelocity.Velocity = direction
+
+    if FlyGyro then
+        FlyGyro.CFrame = camera.CFrame
+    end
+end)
+
+--==================================================
+-- COMMON PAGE - SPEED
+--==================================================
+
+local SpeedCard = MakeCard(CommonPage, 0, 145)
+
+local SpeedTitle = Label(
+    SpeedCard,
+    "SPEED BOOSTER",
+    UDim2.new(1, -20, 0, 25),
+    UDim2.fromOffset(12, 8),
+    15
+)
+SpeedTitle.TextColor3 = PURPLE
+
+Label(
+    SpeedCard,
+    "Speed rieng, khong phu thuoc FLY",
+    UDim2.new(1, -20, 0, 20),
+    UDim2.fromOffset(12, 32),
+    10
+).TextColor3 = MUTED
+
+SpeedToggleButton = Button(
+    SpeedCard,
+    "SPEED: OFF",
+    UDim2.fromOffset(120, 32),
+    UDim2.fromOffset(12, 60)
+)
+
+local SpeedInput = Input(
+    SpeedCard,
+    "1 - 1000",
+    UDim2.fromOffset(100, 32),
+    UDim2.fromOffset(145, 60),
+    WalkSpeedValue
+)
+
+local SpeedSlider
+
+local function SetSpeed(value)
+    WalkSpeedValue = math.clamp(
+        math.floor(tonumber(value) or 50),
+        1,
+        1000
+    )
+
+    SpeedInput.Text = tostring(WalkSpeedValue)
+
+    if SpeedSlider then
+        SpeedSlider.Set(WalkSpeedValue)
+    end
+
+    if SpeedEnabled and Humanoid then
+        Humanoid.WalkSpeed = WalkSpeedValue
+    end
+end
+
+SpeedSlider = CreateSlider(
+    SpeedCard,
+    "SPEED VALUE (1 - 1000)",
+    1,
+    1000,
+    WalkSpeedValue,
+    function(value)
+        WalkSpeedValue = value
+        SpeedInput.Text = tostring(value)
+
+        if SpeedEnabled and Humanoid then
+            Humanoid.WalkSpeed = value
+        end
+    end
+)
+
+SpeedInput.FocusLost:Connect(function()
+    local v = tonumber(SpeedInput.Text)
+    if v then
+        SetSpeed(v)
+    else
+        SpeedInput.Text = tostring(WalkSpeedValue)
+    end
+end)
+
+SpeedToggleButton.MouseButton1Click:Connect(function()
+    SpeedEnabled = not SpeedEnabled
+
+    if SpeedEnabled then
+        SpeedToggleButton.Text = "SPEED: ON"
+        SpeedToggleButton.BackgroundColor3 = DARK_PURPLE
+
+        if Humanoid then
+            Humanoid.WalkSpeed = WalkSpeedValue
+        end
+    else
+        SpeedToggleButton.Text = "SPEED: OFF"
+        SpeedToggleButton.BackgroundColor3 = CARD
+
+        if Humanoid then
+            Humanoid.WalkSpeed = 16
+        end
+    end
+end)
+
+--==================================================
+-- COMMON PAGE - NOCLIP
+--==================================================
+
+local NoclipCard = MakeCard(CommonPage, 0, 90)
+
+Label(
+    NoclipCard,
+    "NOCLIP",
+    UDim2.new(1, -20, 0, 25),
+    UDim2.fromOffset(12, 8),
+    15
+).TextColor3 = PURPLE
+
+Label(
+    NoclipCard,
+    "Cho phep nhan vat di qua vat can trong game cua ban",
+    UDim2.new(1, -20, 0, 20),
+    UDim2.fromOffset(12, 33),
+    10
+).TextColor3 = MUTED
+
+NoclipToggleButton = Button(
+    NoclipCard,
+    "NOCLIP: OFF",
+    UDim2.fromOffset(125, 30),
+    UDim2.fromOffset(12, 55)
+)
+
+NoclipToggleButton.MouseButton1Click:Connect(function()
+    NoclipEnabled = not NoclipEnabled
+
+    if NoclipEnabled then
+        NoclipToggleButton.Text = "NOCLIP: ON"
+        NoclipToggleButton.BackgroundColor3 = DARK_PURPLE
+    else
+        NoclipToggleButton.Text = "NOCLIP: OFF"
+        NoclipToggleButton.BackgroundColor3 = CARD
+
+        for part, oldValue in pairs(OriginalCollision) do
+            if part and part.Parent then
+                part.CanCollide = oldValue
+            end
+        end
+
+        table.clear(OriginalCollision)
+    end
+end)
+
+RunService.Stepped:Connect(function()
+    if not NoclipEnabled or not Character then
+        return
+    end
+
+    for _, part in ipairs(Character:GetDescendants()) do
+        if part:IsA("BasePart") then
+            if OriginalCollision[part] == nil then
+                OriginalCollision[part] = part.CanCollide
+            end
+
+            part.CanCollide = false
+        end
+    end
+end)
+
+--==================================================
+-- FUNCTION 2 PAGE
+--==================================================
+
+local InfoCard = MakeCard(FunctionPage, 0, 105)
+
+Label(
+    InfoCard,
+    "CHUC NANG 2",
+    UDim2.new(1, -20, 0, 25),
+    UDim2.fromOffset(12, 10),
+    15
+).TextColor3 = PURPLE
+
+Label(
+    InfoCard,
+    "Khu vuc danh cho cac chuc nang bo sung.",
+    UDim2.new(1, -20, 0, 25),
+    UDim2.fromOffset(12, 42),
+    11
+).TextColor3 = MUTED
+
+--==================================================
+-- SETTINGS PAGE
+--==================================================
+
+local SettingsCard = MakeCard(SettingsPage, 0, 130)
+
+Label(
+    SettingsCard,
+    "CAI DAT",
+    UDim2.new(1, -20, 0, 25),
+    UDim2.fromOffset(12, 10),
+    15
+).TextColor3 = PURPLE
+
+Label(
+    SettingsCard,
+    "VULITQPHUB V2.0\nTheme: Purple\nCreator: sarry_fixe",
+    UDim2.new(1, -20, 0, 65),
+    UDim2.fromOffset(12, 43),
+    12
+).TextColor3 = MUTED
+
+local SettingsDiscord = Button(
+    SettingsCard,
+    "COPY DISCORD LINK",
+    UDim2.new(1, -24, 0, 30),
+    UDim2.fromOffset(12, 92)
+)
+
+SettingsDiscord.MouseButton1Click:Connect(function()
+    if typeof(setclipboard) == "function" then
+        pcall(setclipboard, DISCORD)
+        SettingsDiscord.Text = "COPIED!"
+    else
+        SettingsDiscord.Text = "discord.gg/6cRkHcNTC"
+    end
+end)
+
+--==================================================
+-- MINIMIZE / REOPEN
+--==================================================
+
+ReopenButton = Button(
+    ScreenGui,
+    "V",
+    UDim2.fromOffset(48, 48),
+    UDim2.new(0, 15, 0.5, -24)
+)
+
+ReopenButton.TextSize = 18
+ReopenButton.TextColor3 = PURPLE
+ReopenButton.Visible = false
+Corner(ReopenButton, 50)
+Stroke(ReopenButton, PURPLE, 2)
+
+MinimizeButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+    ReopenButton.Visible = true
+end)
+
+ReopenButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = true
+    ReopenButton.Visible = false
+end)
+
+--==================================================
+-- CLOSE
+--==================================================
+
+CloseButton.MouseButton1Click:Connect(function()
+    StopFly()
+
+    SpeedEnabled = false
+    NoclipEnabled = false
+
+    if Humanoid then
+        Humanoid.WalkSpeed = 16
+    end
+
+    for part, oldValue in pairs(OriginalCollision) do
+        if part and part.Parent then
+            part.CanCollide = oldValue
+        end
+    end
+
+    ScreenGui:Destroy()
+end)
+
+--==================================================
+-- RESPAWN CLEANUP
+--==================================================
+
+Player.CharacterAdded:Connect(function(char)
+    StopFly()
+
+    task.wait(0.2)
+
+    Character = char
+    Humanoid = char:WaitForChild("Humanoid")
+    RootPart = char:WaitForChild("HumanoidRootPart")
+
+    if SpeedEnabled then
+        Humanoid.WalkSpeed = WalkSpeedValue
+    end
+end)
+
+print("VULITQPHUB V2.0 PURPLE EDITION LOADED")
