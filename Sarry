@@ -1,19 +1,20 @@
-
 --==================================================
--- VULITQPHUB V2.0 FULL - PURPLE EDITION
+-- VULITQPHUB V2.1 FULL - PURPLE EDITION
 -- by sarry_fixe
--- INTRO + LOADING + KEY SYSTEM + MAIN MENU
--- HOME + CHUNG + CHUC NANG 2 + CAI DAT
+-- INTRO + LOADING + KEY SYSTEM
+-- MAIN MENU + 4 TABS
 -- FLY + SPEED + NOCLIP
 -- SPEED LIMIT: 1 - 1000
+-- MENU: 560 x 360
 --==================================================
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
-local Player = Players.LocalPlayer
+local GuiService = game:GetService("GuiService")
 
+local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
 --==================================================
@@ -49,6 +50,7 @@ local FlyVelocity
 local FlyGyro
 
 local OriginalCollision = {}
+
 local MainFrame
 local ReopenButton
 local FlyToggleButton
@@ -75,10 +77,8 @@ if Player.Character then
     UpdateCharacter(Player.Character)
 end
 
-Player.CharacterAdded:Connect(UpdateCharacter)
-
 --==================================================
--- GUI HELPERS
+-- GUI
 --==================================================
 
 local ScreenGui = Instance.new("ScreenGui")
@@ -114,9 +114,14 @@ end
 local function Tween(obj, duration, props)
     local tw = TweenService:Create(
         obj,
-        TweenInfo.new(duration, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+        TweenInfo.new(
+            duration,
+            Enum.EasingStyle.Quart,
+            Enum.EasingDirection.Out
+        ),
         props
     )
+
     tw:Play()
     return tw
 end
@@ -156,6 +161,10 @@ local function Button(parent, text, size, position)
     end)
 
     b.MouseLeave:Connect(function()
+        if b.Text:find("ON") then
+            return
+        end
+
         Tween(b, 0.15, {
             BackgroundColor3 = CARD
         })
@@ -184,10 +193,9 @@ local function Input(parent, placeholder, size, position, default)
     return box
 end
 
-local function MakeCard(parent, y, height)
+local function MakeCard(parent, height)
     local card = New("Frame", {
         Size = UDim2.new(1, -16, 0, height),
-        Position = UDim2.fromOffset(8, y),
         BackgroundColor3 = PANEL
     }, parent)
 
@@ -292,6 +300,7 @@ end
 Tween(Intro, 0.3, {
     BackgroundTransparency = 1
 })
+
 task.wait(0.35)
 Intro:Destroy()
 
@@ -369,6 +378,7 @@ VerifyButton.MouseButton1Click:Connect(function()
         Verified = true
         KeyStatus.Text = "Status: Correct key!"
         KeyStatus.TextColor3 = PURPLE
+
         Tween(KeyFrame, 0.25, {
             BackgroundColor3 = Color3.fromRGB(40, 25, 60)
         })
@@ -379,16 +389,15 @@ VerifyButton.MouseButton1Click:Connect(function()
 end)
 
 repeat task.wait() until Verified
-
 KeyFrame:Destroy()
 
 --==================================================
--- MAIN MENU
+-- MAIN MENU - 560 x 360
 --==================================================
 
 MainFrame = New("Frame", {
-    Size = UDim2.fromOffset(560, 410),
-    Position = UDim2.new(0.5, -280, 0.5, -205),
+    Size = UDim2.fromOffset(560, 360),
+    Position = UDim2.new(0.5, -280, 0.5, -180),
     BackgroundColor3 = BG,
     ClipsDescendants = true
 }, ScreenGui)
@@ -426,7 +435,7 @@ local CloseButton = Button(
     UDim2.new(1, -38, 0, 7)
 )
 
--- DRAG MENU
+-- DRAG
 
 local dragging = false
 local dragStart
@@ -551,7 +560,8 @@ local function CreateTab(name, order)
         end
 
         for tabName, tab in pairs(TabButtons) do
-            tab.BackgroundColor3 = tabName == name and DARK_PURPLE or CARD
+            tab.BackgroundColor3 =
+                tabName == name and DARK_PURPLE or CARD
         end
 
         PageTitle.Text = string.upper(name)
@@ -574,7 +584,8 @@ local function SwitchTab(name)
     end
 
     for tabName, tab in pairs(TabButtons) do
-        tab.BackgroundColor3 = tabName == name and DARK_PURPLE or CARD
+        tab.BackgroundColor3 =
+            tabName == name and DARK_PURPLE or CARD
     end
 
     PageTitle.Text = string.upper(name)
@@ -586,7 +597,7 @@ SwitchTab("Trang chủ")
 -- HOME PAGE
 --==================================================
 
-local HomeCard = MakeCard(HomePage, 0, 125)
+local HomeCard = MakeCard(HomePage, 125)
 
 Label(
     HomeCard,
@@ -604,7 +615,7 @@ Label(
     12
 ).TextColor3 = MUTED
 
-local DiscordCard = MakeCard(HomePage, 0, 95)
+local DiscordCard = MakeCard(HomePage, 95)
 
 Label(
     DiscordCard,
@@ -644,123 +655,10 @@ CopyDiscord.MouseButton1Click:Connect(function()
 end)
 
 --==================================================
--- SLIDER HELPER
---==================================================
-
-local function CreateSlider(parent, title, minValue, maxValue, defaultValue, callback)
-    local card = MakeCard(parent, 0, 88)
-
-    Label(
-        card,
-        title,
-        UDim2.new(1, -20, 0, 22),
-        UDim2.fromOffset(12, 7),
-        12
-    )
-
-    local valueLabel = Label(
-        card,
-        tostring(defaultValue),
-        UDim2.fromOffset(65, 22),
-        UDim2.new(1, -75, 0, 7),
-        12
-    )
-    valueLabel.TextXAlignment = Enum.TextXAlignment.Right
-    valueLabel.TextColor3 = PURPLE
-
-    local bar = New("Frame", {
-        Size = UDim2.new(1, -24, 0, 8),
-        Position = UDim2.fromOffset(12, 48),
-        BackgroundColor3 = BG
-    }, card)
-    Corner(bar, 8)
-
-    local fill = New("Frame", {
-        Size = UDim2.new(
-            (defaultValue - minValue) / (maxValue - minValue),
-            0, 1, 0
-        ),
-        BackgroundColor3 = PURPLE
-    }, bar)
-    Corner(fill, 8)
-
-    local knob = New("Frame", {
-        Size = UDim2.fromOffset(16, 16),
-        Position = UDim2.new(
-            (defaultValue - minValue) / (maxValue - minValue),
-            -8, 0.5, -8
-        ),
-        BackgroundColor3 = WHITE
-    }, bar)
-    Corner(knob, 50)
-    Stroke(knob, PURPLE, 2)
-
-    local value = defaultValue
-    local sliding = false
-
-    local function SetValue(v)
-        value = math.clamp(
-            math.floor(v + 0.5),
-            minValue,
-            maxValue
-        )
-
-        local percent = (value - minValue) / (maxValue - minValue)
-
-        fill.Size = UDim2.new(percent, 0, 1, 0)
-        knob.Position = UDim2.new(percent, -8, 0.5, -8)
-        valueLabel.Text = tostring(value)
-
-        callback(value)
-    end
-
-    local function UpdateFromX(x)
-        local percent = math.clamp(
-            (x - bar.AbsolutePosition.X) / bar.AbsoluteSize.X,
-            0,
-            1
-        )
-
-        SetValue(minValue + percent * (maxValue - minValue))
-    end
-
-    bar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-            or input.UserInputType == Enum.UserInputType.Touch then
-            sliding = true
-            UpdateFromX(input.Position.X)
-        end
-    end)
-
-    UIS.InputChanged:Connect(function(input)
-        if sliding and (
-            input.UserInputType == Enum.UserInputType.MouseMovement
-            or input.UserInputType == Enum.UserInputType.Touch
-        ) then
-            UpdateFromX(input.Position.X)
-        end
-    end)
-
-    UIS.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-            or input.UserInputType == Enum.UserInputType.Touch then
-            sliding = false
-        end
-    end)
-
-    return {
-        Set = SetValue,
-        Get = function()
-            return value
-        end
-    }
-end
-
---==================================================
 -- COMMON PAGE - FLY
 --==================================================
 
-local FlyCard = MakeCard(CommonPage, 0, 150)
+local FlyCard = MakeCard(CommonPage, 150)
 
 local FlyTitle = Label(
     FlyCard,
@@ -773,7 +671,7 @@ FlyTitle.TextColor3 = PURPLE
 
 Label(
     FlyCard,
-    "Bay len / di chuyen bang WASD, Space va Ctrl",
+    "Bay len / WASD, Space va Ctrl",
     UDim2.new(1, -20, 0, 20),
     UDim2.fromOffset(12, 34),
     10
@@ -871,7 +769,11 @@ FlyUpButton.MouseButton1Down:Connect(function()
 end)
 
 FlyUpButton.MouseButton1Up:Connect(function()
-    FlyUp = true
+    FlyUp = false
+end)
+
+FlyDownButton.MouseButton1Down:Connect(function()
+    FlyDown = true
 end)
 
 FlyDownButton.MouseButton1Up:Connect(function()
@@ -879,18 +781,14 @@ FlyDownButton.MouseButton1Up:Connect(function()
 end)
 
 FlySpeedInput.FocusLost:Connect(function()
-    local v = tonumber(FlySpeedInput.Text)
+    local value = tonumber(FlySpeedInput.Text)
 
-    if v then
-        FlySpeed = math.clamp(math.floor(v), 1, 1000)
+    if value then
+        FlySpeed = math.clamp(math.floor(value), 1, 1000)
     end
 
     FlySpeedInput.Text = tostring(FlySpeed)
 end)
-
---==================================================
--- FLY MOVEMENT
---==================================================
 
 RunService.RenderStepped:Connect(function()
     if not FlyEnabled or not FlyVelocity or not RootPart then
@@ -902,12 +800,7 @@ RunService.RenderStepped:Connect(function()
         return
     end
 
-    local move = Vector3.zero
-
-    if Humanoid then
-        move = Humanoid.MoveDirection
-    end
-
+    local move = Humanoid and Humanoid.MoveDirection or Vector3.zero
     local vertical = 0
 
     if UIS:IsKeyDown(Enum.KeyCode.Space) or FlyUp then
@@ -920,10 +813,8 @@ RunService.RenderStepped:Connect(function()
         vertical -= 1
     end
 
-    local direction = move * FlySpeed
-    direction += Vector3.new(0, vertical * FlySpeed, 0)
-
-    FlyVelocity.Velocity = direction
+    FlyVelocity.Velocity =
+        move * FlySpeed + Vector3.new(0, vertical * FlySpeed, 0)
 
     if FlyGyro then
         FlyGyro.CFrame = camera.CFrame
@@ -931,10 +822,10 @@ RunService.RenderStepped:Connect(function()
 end)
 
 --==================================================
--- COMMON PAGE - SPEED
+-- COMMON PAGE - SPEED BOOSTER
 --==================================================
 
-local SpeedCard = MakeCard(CommonPage, 0, 145)
+local SpeedCard = MakeCard(CommonPage, 145)
 
 local SpeedTitle = Label(
     SpeedCard,
@@ -957,18 +848,37 @@ SpeedToggleButton = Button(
     SpeedCard,
     "SPEED: OFF",
     UDim2.fromOffset(120, 32),
-    UDim2.fromOffset(12, 60)
+    UDim2.fromOffset(12, 58)
 )
 
 local SpeedInput = Input(
     SpeedCard,
     "1 - 1000",
     UDim2.fromOffset(100, 32),
-    UDim2.fromOffset(145, 60),
+    UDim2.fromOffset(145, 58),
     WalkSpeedValue
 )
 
-local SpeedSlider
+local SpeedBar = New("Frame", {
+    Size = UDim2.new(1, -24, 0, 8),
+    Position = UDim2.fromOffset(12, 112),
+    BackgroundColor3 = BG
+}, SpeedCard)
+Corner(SpeedBar, 8)
+
+local SpeedFill = New("Frame", {
+    Size = UDim2.new(WalkSpeedValue / 1000, 0, 1, 0),
+    BackgroundColor3 = PURPLE
+}, SpeedBar)
+Corner(SpeedFill, 8)
+
+local SpeedKnob = New("Frame", {
+    Size = UDim2.fromOffset(16, 16),
+    Position = UDim2.new(WalkSpeedValue / 1000, -8, 0.5, -8),
+    BackgroundColor3 = WHITE
+}, SpeedBar)
+Corner(SpeedKnob, 50)
+Stroke(SpeedKnob, PURPLE, 2)
 
 local function SetSpeed(value)
     WalkSpeedValue = math.clamp(
@@ -979,37 +889,62 @@ local function SetSpeed(value)
 
     SpeedInput.Text = tostring(WalkSpeedValue)
 
-    if SpeedSlider then
-        SpeedSlider.Set(WalkSpeedValue)
-    end
+    local percent = WalkSpeedValue / 1000
+
+    SpeedFill.Size = UDim2.new(percent, 0, 1, 0)
+    SpeedKnob.Position = UDim2.new(percent, -8, 0.5, -8)
 
     if SpeedEnabled and Humanoid then
         Humanoid.WalkSpeed = WalkSpeedValue
     end
 end
 
-SpeedSlider = CreateSlider(
-    SpeedCard,
-    "SPEED VALUE (1 - 1000)",
-    1,
-    1000,
-    WalkSpeedValue,
-    function(value)
-        WalkSpeedValue = value
-        SpeedInput.Text = tostring(value)
-
-        if SpeedEnabled and Humanoid then
-            Humanoid.WalkSpeed = value
-        end
-    end
-)
-
 SpeedInput.FocusLost:Connect(function()
-    local v = tonumber(SpeedInput.Text)
-    if v then
-        SetSpeed(v)
+    local value = tonumber(SpeedInput.Text)
+
+    if value then
+        SetSpeed(value)
     else
         SpeedInput.Text = tostring(WalkSpeedValue)
+    end
+end)
+
+local SpeedSliding = false
+
+local function UpdateSpeedSlider(x)
+    local percent = math.clamp(
+        (x - SpeedBar.AbsolutePosition.X) /
+        SpeedBar.AbsoluteSize.X,
+        0,
+        1
+    )
+
+    SetSpeed(1 + percent * 999)
+end
+
+SpeedBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+
+        SpeedSliding = true
+        UpdateSpeedSlider(input.Position.X)
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if SpeedSliding and (
+        input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch
+    ) then
+        UpdateSpeedSlider(input.Position.X)
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+
+        SpeedSliding = false
     end
 end)
 
@@ -1037,7 +972,7 @@ end)
 -- COMMON PAGE - NOCLIP
 --==================================================
 
-local NoclipCard = MakeCard(CommonPage, 0, 90)
+local NoclipCard = MakeCard(CommonPage, 90)
 
 Label(
     NoclipCard,
@@ -1049,7 +984,7 @@ Label(
 
 Label(
     NoclipCard,
-    "Cho phep nhan vat di qua vat can trong game cua ban",
+    "Di qua vat can trong game cua ban",
     UDim2.new(1, -20, 0, 20),
     UDim2.fromOffset(12, 33),
     10
@@ -1102,7 +1037,7 @@ end)
 -- FUNCTION 2 PAGE
 --==================================================
 
-local InfoCard = MakeCard(FunctionPage, 0, 105)
+local InfoCard = MakeCard(FunctionPage, 105)
 
 Label(
     InfoCard,
@@ -1124,7 +1059,7 @@ Label(
 -- SETTINGS PAGE
 --==================================================
 
-local SettingsCard = MakeCard(SettingsPage, 0, 130)
+local SettingsCard = MakeCard(SettingsPage, 130)
 
 Label(
     SettingsCard,
@@ -1136,7 +1071,7 @@ Label(
 
 Label(
     SettingsCard,
-    "VULITQPHUB V2.0\nTheme: Purple\nCreator: sarry_fixe",
+    "VULITQPHUB V2.1\nTheme: Purple\nCreator: sarry_fixe",
     UDim2.new(1, -20, 0, 65),
     UDim2.fromOffset(12, 43),
     12
@@ -1151,8 +1086,13 @@ local SettingsDiscord = Button(
 
 SettingsDiscord.MouseButton1Click:Connect(function()
     if typeof(setclipboard) == "function" then
-        pcall(setclipboard, DISCORD)
-        SettingsDiscord.Text = "COPIED!"
+        local success = pcall(setclipboard, DISCORD)
+
+        if success then
+            SettingsDiscord.Text = "COPIED!"
+        else
+            SettingsDiscord.Text = "COPY NOT AVAILABLE"
+        end
     else
         SettingsDiscord.Text = "discord.gg/6cRkHcNTC"
     end
@@ -1186,10 +1126,10 @@ ReopenButton.MouseButton1Click:Connect(function()
 end)
 
 --==================================================
--- CLOSE
+-- CLEANUP
 --==================================================
 
-CloseButton.MouseButton1Click:Connect(function()
+local function RestoreCharacter()
     StopFly()
 
     SpeedEnabled = false
@@ -1205,17 +1145,16 @@ CloseButton.MouseButton1Click:Connect(function()
         end
     end
 
+    table.clear(OriginalCollision)
+end
+
+CloseButton.MouseButton1Click:Connect(function()
+    RestoreCharacter()
     ScreenGui:Destroy()
 end)
 
---==================================================
--- RESPAWN CLEANUP
---==================================================
-
 Player.CharacterAdded:Connect(function(char)
     StopFly()
-
-    task.wait(0.2)
 
     Character = char
     Humanoid = char:WaitForChild("Humanoid")
@@ -1226,4 +1165,4 @@ Player.CharacterAdded:Connect(function(char)
     end
 end)
 
-print("VULITQPHUB V2.0 PURPLE EDITION LOADED")
+print("VULITQPHUB V2.1 PURPLE EDITION LOADED")
