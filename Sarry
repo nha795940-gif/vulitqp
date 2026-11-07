@@ -515,13 +515,26 @@ local Page = New("Frame",{
 Corner(Page,13)
 Stroke(Page)
 
+-- FLY + ERROR TITLE
+
 New("TextLabel",{
     Position = UDim2.new(0,12,0,10),
-    Size = UDim2.new(1,-24,0,30),
+    Size = UDim2.new(0,38,0,30),
     BackgroundTransparency = 1,
     Text = "FLY",
     TextColor3 = C.WHITE,
-    TextSize = 18,
+    TextSize = 15,
+    Font = Enum.Font.GothamBold,
+    TextXAlignment = Enum.TextXAlignment.Left
+},Page)
+
+New("TextLabel",{
+    Position = UDim2.new(0,48,0,13),
+    Size = UDim2.new(0,55,0,22),
+    BackgroundTransparency = 1,
+    Text = "ERROR",
+    TextColor3 = C.RED,
+    TextSize = 9,
     Font = Enum.Font.GothamBold,
     TextXAlignment = Enum.TextXAlignment.Left
 },Page)
