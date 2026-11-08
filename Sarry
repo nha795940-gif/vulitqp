@@ -590,7 +590,7 @@ HalloweenTitle.TextColor3 = PURPLE
 
 local HalloweenExecute = Button(
     HalloweenCard,
-    "EXECUTE",
+    "bấm để mở menu riêng",
     UDim2.fromOffset(110, 32),
     UDim2.new(1, -122, 0, 43)
 )
@@ -599,7 +599,7 @@ HalloweenExecute.MouseButton1Click:Connect(function()
 
     -- 
 --==================================================
--- HALLOWEEN CANDY AUTO FARM V3
+-- HALLOWEEN CANDY AUTO FARM
 -- PURPLE EDITION
 -- by sarry_fixe
 -- AUTO FARM ON/OFF
@@ -625,6 +625,7 @@ local camera = workspace.CurrentCamera
 
 local AutoFarmEnabled = true
 local ScanDelay = 0.1
+local AntiAFKEnabled = false
 local DoorCooldown = 1
 
 local CandyCount = 0
@@ -734,7 +735,7 @@ makeDraggable(Button)
 
 local Panel = Instance.new("Frame")
 Panel.Name = "InformationPanel"
-Panel.Size = UDim2.new(0, 235, 0, 180)
+Panel.Size = UDim2.new(0, 235, 0, 260)
 Panel.Position = UDim2.new(0, 20, 0.5, 60)
 Panel.BackgroundColor3 = DarkPurple
 Panel.BorderSizePixel = 0
@@ -821,6 +822,43 @@ local DiscordLabel = createLabel(
 
 DiscordLabel.TextSize = 10
 DiscordLabel.TextColor3 = LightPurple
+
+--==================================================
+-- ANTI AFK BUTTON
+--==================================================
+
+local AntiAFKButton = Instance.new("TextButton")
+AntiAFKButton.Name = "AntiAFKToggle"
+AntiAFKButton.Size = UDim2.new(1, -20, 0, 30)
+AntiAFKButton.Position = UDim2.new(0, 10, 0, 160)
+AntiAFKButton.BackgroundColor3 = Purple
+AntiAFKButton.TextColor3 = White
+AntiAFKButton.TextSize = 13
+AntiAFKButton.Font = Enum.Font.GothamBold
+AntiAFKButton.Text = "ANTI AFK : OFF"
+AntiAFKButton.Parent = Panel
+
+Instance.new("UICorner", AntiAFKButton).CornerRadius =
+    UDim.new(0, 8)
+
+local AntiAFKStroke = Instance.new("UIStroke")
+AntiAFKStroke.Color = LightPurple
+AntiAFKStroke.Parent = AntiAFKButton
+
+AntiAFKButton.MouseButton1Click:Connect(function()
+
+    AntiAFKEnabled = not AntiAFKEnabled
+
+    if AntiAFKEnabled then
+        AntiAFKButton.Text = "ANTI AFK : ON"
+        AntiAFKButton.BackgroundColor3 =
+            Color3.fromRGB(40, 180, 90)
+    else
+        AntiAFKButton.Text = "ANTI AFK : OFF"
+        AntiAFKButton.BackgroundColor3 = Purple
+    end
+
+end)
 
 --==================================================
 -- UPDATE INFORMATION
