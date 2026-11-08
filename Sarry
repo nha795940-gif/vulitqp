@@ -1212,14 +1212,11 @@ local function ScanTeddy()
     for _, obj in ipairs(workspace:GetDescendants()) do
         local name = string.lower(obj.Name)
 
-        if name:find("teddy")
-            or name:find("bear")
-            or name:find("doll") then
-
+        if name:find("penyta") then
             AddHighlight(
-                GetTarget(obj),
-                YELLOW,
-                TeddyHighlights
+                obj,
+                TeddyHighlights,
+                Color3.fromRGB(255, 255, 0)
             )
         end
     end
