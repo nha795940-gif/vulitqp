@@ -754,11 +754,40 @@ PanelStroke.Parent = Panel
 local Header = Instance.new("TextLabel")
 Header.Size = UDim2.new(1, 0, 0, 32)
 Header.BackgroundColor3 = Purple
-Header.Text = "HALLOWEEN FARM V3"
+Header.Text = "HALLOWEEN FARM"
 Header.TextColor3 = White
 Header.Font = Enum.Font.GothamBold
 Header.TextSize = 14
+Header.TextXAlignment = Enum.TextXAlignment.Left
 Header.Parent = Panel
+
+local CollapseButton = Instance.new("TextButton")
+CollapseButton.Size = UDim2.new(0, 35, 0, 32)
+CollapseButton.Position = UDim2.new(1, -35, 0, 0)
+CollapseButton.BackgroundTransparency = 1
+CollapseButton.Text = "▲"
+CollapseButton.TextColor3 = White
+CollapseButton.Font = Enum.Font.GothamBold
+CollapseButton.TextSize = 17
+CollapseButton.Parent = Header
+
+local Expanded = true
+
+CollapseButton.MouseButton1Click:Connect(function()
+    Expanded = not Expanded
+
+    for _, obj in ipairs(Panel:GetChildren()) do
+        if obj ~= Header and obj ~= PanelStroke then
+            obj.Visible = Expanded
+        end
+    end
+
+    Panel.Size = Expanded
+        and UDim2.new(0, 235, 0, 230)
+        or UDim2.new(0, 235, 0, 32)
+
+    CollapseButton.Text = Expanded and "▲" or "▼"
+end)
 
 Instance.new("UICorner", Header).CornerRadius =
     UDim.new(0, 10)
@@ -858,6 +887,30 @@ AntiAFKButton.MouseButton1Click:Connect(function()
         AntiAFKButton.BackgroundColor3 = Purple
     end
 
+end)
+
+--==================================================
+-- CLOSE HALLOWEEN FARM MENU
+--==================================================
+
+local DeleteButton = Instance.new("TextButton")
+DeleteButton.Name = "DeleteCandyMenu"
+DeleteButton.Size = UDim2.new(1, -20, 0, 30)
+DeleteButton.Position = UDim2.new(0, 10, 0, 195)
+DeleteButton.BackgroundColor3 = Color3.fromRGB(180, 45, 55)
+DeleteButton.Text = "XÓA MENU AUTO FARM"
+DeleteButton.TextColor3 = White
+DeleteButton.TextSize = 12
+DeleteButton.Font = Enum.Font.GothamBold
+DeleteButton.Parent = Panel
+
+Instance.new("UICorner", DeleteButton).CornerRadius =
+    UDim.new(0, 8)
+
+DeleteButton.MouseButton1Click:Connect(function()
+    AutoFarmEnabled = false
+    AntiAFKEnabled = false
+    ScreenGui:Destroy()
 end)
 
 --==================================================
