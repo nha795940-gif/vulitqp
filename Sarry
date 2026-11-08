@@ -1034,26 +1034,158 @@ RunService.Stepped:Connect(function()
 end)
 
 --==================================================
--- FUNCTION 2 PAGE
+-- TSB - EVENT HALLOWEEN
+-- FARM CANDY ON / OFF
+-- Roblox Studio LocalScript
 --==================================================
 
-local InfoCard = MakeCard(FunctionPage, 105)
+local HalloweenFolder = workspace:WaitForChild("HalloweenCandy")
+
+local FarmCandyEnabled = false
+local FarmCandyThread = nil
+
+local FarmCandyCard = MakeCard(FunctionPage, 115)
 
 Label(
-    InfoCard,
-    "CHUC NANG 2",
+    FarmCandyCard,
+    "EVENT HALLOWEEN",
     UDim2.new(1, -20, 0, 25),
-    UDim2.fromOffset(12, 10),
+    UDim2.fromOffset(12, 8),
     15
 ).TextColor3 = PURPLE
 
 Label(
-    InfoCard,
-    "Khu vuc danh cho cac chuc nang bo sung.",
-    UDim2.new(1, -20, 0, 25),
-    UDim2.fromOffset(12, 42),
-    11
+    FarmCandyCard,
+    "Tu dong tim va di den vi tri keo",
+    UDim2.new(1, -20, 0, 20),
+    UDim2.fromOffset(12, 34),
+    10
 ).TextColor3 = MUTED
+
+local FarmCandyButton = Button(
+    FarmCandyCard,
+    "FARM CANDY: OFF",
+    UDim2.fromOffset(145, 32),
+    UDim2.fromOffset(12, 65)
+)
+
+local FarmCandyStatus = Label(
+    FarmCandyCard,
+    "Status: Waiting...",
+    UDim2.new(1, -175, 0, 30),
+    UDim2.fromOffset(170, 66),
+    11
+)
+
+FarmCandyStatus.TextColor3 = MUTED
+
+-- Tìm kẹo gần nhất
+local function FindClosestCandy(root)
+    local closestPart = nil
+    local closestDistance = math.huge
+
+    for _, candy in ipairs(HalloweenFolder:GetChildren()) do
+        local rest = candy:GetAttribute("Rest")
+
+        if typeof(rest) == "Instance"
+            and rest:IsA("BasePart")
+            and rest:IsDescendantOf(workspace) then
+
+            local distance =
+                (root.Position - rest.Position).Magnitude
+
+            if distance < closestDistance then
+                closestDistance = distance
+                closestPart = rest
+            end
+        end
+    end
+
+    return closestPart
+end
+
+-- Dừng farm
+local function StopFarmCandy()
+    FarmCandyEnabled = false
+
+    FarmCandyButton.Text = "FARM CANDY: OFF"
+    FarmCandyButton.BackgroundColor3 = CARD
+
+    FarmCandyStatus.Text = "Status: Stopped"
+    FarmCandyStatus.TextColor3 = MUTED
+
+    local character = Player.Character
+    local humanoid = character
+        and character:FindFirstChildOfClass("Humanoid")
+
+    if humanoid then
+        humanoid:MoveTo(humanoid.RootPart
+            and humanoid.RootPart.Position
+            or character:GetPivot().Position)
+    end
+end
+
+-- Bắt đầu farm
+local function StartFarmCandy()
+    if FarmCandyEnabled then
+        return
+    end
+
+    FarmCandyEnabled = true
+
+    FarmCandyButton.Text = "FARM CANDY: ON"
+    FarmCandyButton.BackgroundColor3 = DARK_PURPLE
+
+    FarmCandyStatus.Text = "Status: Finding candy..."
+    FarmCandyStatus.TextColor3 = PURPLE
+
+    FarmCandyThread = task.spawn(function()
+        while FarmCandyEnabled do
+            local character = Player.Character
+            local humanoid = character
+                and character:FindFirstChildOfClass("Humanoid")
+            local root = character
+                and character:FindFirstChild("HumanoidRootPart")
+
+            if not humanoid or not root or humanoid.Health <= 0 then
+                FarmCandyStatus.Text = "Status: Waiting for character..."
+                task.wait(1)
+                continue
+            end
+
+            local candy = FindClosestCandy(root)
+
+            if candy then
+                FarmCandyStatus.Text = "Status: Going to candy..."
+
+                humanoid:MoveTo(
+                    candy.Position + Vector3.new(0, 3, 0)
+                )
+
+                -- Chờ một khoảng ngắn, luôn kiểm tra trạng thái ON/OFF
+                for i = 1, 10 do
+                    if not FarmCandyEnabled then
+                        break
+                    end
+
+                    task.wait(0.1)
+                end
+            else
+                FarmCandyStatus.Text = "Status: No candy found"
+                task.wait(1)
+            end
+        end
+    end)
+end
+
+-- Nút bật/tắt
+FarmCandyButton.MouseButton1Click:Connect(function()
+    if FarmCandyEnabled then
+        StopFarmCandy()
+    else
+        StartFarmCandy()
+    end
+end)
 
 --==================================================
 -- SETTINGS PAGE
