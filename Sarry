@@ -597,7 +597,357 @@ local HalloweenExecute = Button(
 
 HalloweenExecute.MouseButton1Click:Connect(function()
 
-    -- loadstring(game:HttpGet("https://raw.githubusercontent.com/sarryfixe/V8/main/H"))()
+    --
+--==================================================
+-- HALLOWEEN CANDY AUTO FARM V2
+-- by sarry_fixe
+-- INSTANT CANDY DETECTION
+-- AUTO FARM ON/OFF
+--==================================================
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+
+local folder = workspace:WaitForChild("HalloweenCandy")
+local trees = workspace:WaitForChild("HalloweenDoorTrees")
+
+local camera = workspace.CurrentCamera
+
+--==================================================
+-- SETTINGS
+--==================================================
+
+local AutoFarmEnabled = true
+local ScanDelay = 0.1
+local DoorCooldown = 1
+
+local CandySpawned = false
+local LastDoorTime = 0
+
+--==================================================
+-- GUI
+--==================================================
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "CandyFarmV2"
+ScreenGui.ResetOnSpawn = false
+
+local Button = Instance.new("TextButton")
+Button.Name = "AutoFarmToggle"
+Button.Size = UDim2.new(0, 165, 0, 45)
+Button.Position = UDim2.new(0, 20, 0.5, 0)
+Button.BackgroundColor3 = Color3.fromRGB(40, 180, 90)
+Button.TextColor3 = Color3.new(1, 1, 1)
+Button.TextSize = 15
+Button.Font = Enum.Font.GothamBold
+Button.Text = "AUTO FARM : ON"
+Button.Parent = ScreenGui
+
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 9)
+Corner.Parent = Button
+
+local Stroke = Instance.new("UIStroke")
+Stroke.Color = Color3.new(1, 1, 1)
+Stroke.Transparency = 0.6
+Stroke.Parent = Button
+
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+
+--==================================================
+-- STATUS
+--==================================================
+
+local status = Drawing.new("Text")
+
+status.Text =
+    "Discord: discord.gg/aBq4NTkMyP\nStatus: Finding candy..."
+
+status.Size = 18
+status.Center = true
+status.Outline = true
+status.Color = Color3.fromRGB(255, 255, 255)
+status.Position = Vector2.new(camera.ViewportSize.X / 2, 35)
+status.Visible = true
+
+local function setStatus(message)
+    status.Text =
+        "Discord: discord.gg/aBq4NTkMyP\nStatus: " .. message
+end
+
+RunService.RenderStepped:Connect(function()
+    camera = workspace.CurrentCamera
+
+    if camera then
+        status.Position = Vector2.new(
+            camera.ViewportSize.X / 2,
+            35
+        )
+    end
+end)
+
+--==================================================
+-- TOGGLE
+--==================================================
+
+Button.MouseButton1Click:Connect(function()
+
+    AutoFarmEnabled = not AutoFarmEnabled
+
+    if AutoFarmEnabled then
+
+        Button.Text = "AUTO FARM : ON"
+        Button.BackgroundColor3 =
+            Color3.fromRGB(40, 180, 90)
+
+        setStatus("Finding candy...")
+
+    else
+
+        Button.Text = "AUTO FARM : OFF"
+        Button.BackgroundColor3 =
+            Color3.fromRGB(200, 55, 55)
+
+        setStatus("Auto Farm Disabled")
+
+    end
+end)
+
+--==================================================
+-- DETECT NEW CANDY
+--==================================================
+
+folder.ChildAdded:Connect(function()
+    CandySpawned = true
+end)
+
+--==================================================
+-- GET CANDY POSITION
+--==================================================
+
+local function getCandyPosition(candy)
+
+    local rest = candy:GetAttribute("Rest")
+
+    if typeof(rest) == "CFrame" then
+        return rest.Position
+    end
+
+    if typeof(rest) == "Vector3" then
+        return rest
+    end
+
+    if candy:IsA("BasePart") then
+        return candy.Position
+    end
+
+    if candy:IsA("Model") then
+        return candy:GetPivot().Position
+    end
+
+    local part = candy:FindFirstChildWhichIsA(
+        "BasePart",
+        true
+    )
+
+    if part then
+        return part.Position
+    end
+
+    return nil
+end
+
+--==================================================
+-- FIND CLOSEST CANDY
+--==================================================
+
+local function findClosestCandy(root)
+
+    local closestCandy
+    local closestPosition
+    local closestDistance = math.huge
+
+    for _, candy in ipairs(folder:GetChildren()) do
+
+        local position = getCandyPosition(candy)
+
+        if position then
+
+            local distance =
+                (root.Position - position).Magnitude
+
+            if distance < closestDistance then
+
+                closestDistance = distance
+                closestCandy = candy
+                closestPosition = position
+
+            end
+        end
+    end
+
+    return closestCandy, closestPosition
+end
+
+--==================================================
+-- CHECK BUSY
+--==================================================
+
+local function isBusy(character)
+
+    return character:FindFirstChild("RootAnchor")
+        or character:FindFirstChild("NoRotate")
+
+end
+
+--==================================================
+-- FIND CLOSEST DOOR
+--==================================================
+
+local function findClosestDoor(root)
+
+    local closestPrompt
+    local closestPart
+    local closestDistance = math.huge
+
+    for _, tree in ipairs(trees:GetChildren()) do
+
+        local door = tree:FindFirstChild("DOOR 1 NEW")
+        local frame = door and door:FindFirstChild("Frame")
+
+        local prompt = frame and
+            frame:FindFirstChild("TrickOrTreat")
+
+        if prompt and prompt:IsA("ProximityPrompt") then
+
+            local part = prompt.Parent
+
+            if part and part:IsA("BasePart") then
+
+                local distance =
+                    (root.Position - part.Position).Magnitude
+
+                if distance < closestDistance then
+
+                    closestDistance = distance
+                    closestPrompt = prompt
+                    closestPart = part
+
+                end
+            end
+        end
+    end
+
+    return closestPrompt, closestPart
+end
+
+--==================================================
+-- MAIN LOOP
+--==================================================
+
+while task.wait(ScanDelay) do
+
+    if not AutoFarmEnabled then
+        continue
+    end
+
+    local character = player.Character
+
+    local root = character and
+        character:FindFirstChild("HumanoidRootPart")
+
+    local humanoid = character and
+        character:FindFirstChildOfClass("Humanoid")
+
+    if not root or not humanoid then
+
+        setStatus("Waiting for character...")
+        continue
+
+    end
+
+    if humanoid.Health <= 0 then
+
+        setStatus("Character dead...")
+        continue
+
+    end
+
+    if isBusy(character) then
+
+        setStatus("Waiting for door...")
+        continue
+
+    end
+
+    --==============================================
+    -- PRIORITY 1: CANDY
+    --==============================================
+
+    local candy, candyPosition =
+        findClosestCandy(root)
+
+    if candy and candyPosition then
+
+        CandySpawned = false
+
+        setStatus("Candy detected! Collecting...")
+
+        root.CFrame = CFrame.new(
+            candyPosition + Vector3.new(0, 4, 0)
+        )
+
+        humanoid.Jump = true
+
+        humanoid:ChangeState(
+            Enum.HumanoidStateType.Jumping
+        )
+
+        continue
+    end
+
+    --==============================================
+    -- PRIORITY 2: DOOR
+    --==============================================
+
+    local currentTime = os.clock()
+
+    if currentTime - LastDoorTime >= DoorCooldown then
+
+        local prompt, part = findClosestDoor(root)
+
+        if prompt and part then
+
+            setStatus("Visiting closest door...")
+
+            humanoid.Jump = true
+
+            humanoid:ChangeState(
+                Enum.HumanoidStateType.Jumping
+            )
+
+            root.CFrame = part.CFrame
+
+            if typeof(fireproximityprompt) == "function" then
+
+                fireproximityprompt(prompt)
+
+            end
+
+            LastDoorTime = currentTime
+
+        else
+
+            setStatus("No candy - No doors found")
+
+        end
+    end
+
+end
+
+end) 
 
 CreateTab("Trang chủ", 1)
 CreateTab("Chung", 2)
