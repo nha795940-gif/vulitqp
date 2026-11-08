@@ -1127,10 +1127,10 @@ end
     
 end) 
 
-CreateTab("Trang chủ", 1
-CreateTab("Chung", 2
-CreateTab("TSB",3
-CreateTab("cài đạt",4
+CreateTab("Trang chủ", 1)
+CreateTab("Chung", 2)
+CreateTab("TSB",3)
+CreateTab("cài đạt",4)
 
 local function SwitchTab(name)
     for pageName, page in pairs(Pages) do
