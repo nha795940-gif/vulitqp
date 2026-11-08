@@ -599,8 +599,6 @@ HalloweenExecute.MouseButton1Click:Connect(function()
 
     -- loadstring(game:HttpGet("https://raw.githubusercontent.com/sarryfixe/V8/main/H"))()
 
-end)
-
 CreateTab("Trang chủ", 1)
 CreateTab("Chung", 2)
 CreateTab("TSB", 3)
