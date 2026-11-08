@@ -597,16 +597,20 @@ local HalloweenExecute = Button(
 
 HalloweenExecute.MouseButton1Click:Connect(function()
 
-    --
+    -- 
 --==================================================
--- HALLOWEEN CANDY AUTO FARM V2
+-- HALLOWEEN CANDY AUTO FARM V3
+-- PURPLE EDITION
 -- by sarry_fixe
--- INSTANT CANDY DETECTION
 -- AUTO FARM ON/OFF
+-- DRAGGABLE GUI
+-- CANDY COUNTER
+-- UPTIME COUNTER
 --==================================================
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
 
 local player = Players.LocalPlayer
 
@@ -623,69 +627,242 @@ local AutoFarmEnabled = true
 local ScanDelay = 0.1
 local DoorCooldown = 1
 
-local CandySpawned = false
+local CandyCount = 0
+local StartTime = os.clock()
 local LastDoorTime = 0
+
+--==================================================
+-- PURPLE COLORS
+--==================================================
+
+local Purple = Color3.fromRGB(115, 55, 190)
+local DarkPurple = Color3.fromRGB(35, 20, 55)
+local LightPurple = Color3.fromRGB(185, 130, 255)
+local White = Color3.fromRGB(255, 255, 255)
 
 --==================================================
 -- GUI
 --==================================================
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "CandyFarmV2"
+ScreenGui.Name = "CandyFarmV3"
 ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
+
+--==================================================
+-- DRAG FUNCTION
+--==================================================
+
+local function makeDraggable(object, dragArea)
+
+    local dragging = false
+    local dragStart
+    local startPosition
+
+    dragArea = dragArea or object
+
+    dragArea.InputBegan:Connect(function(input)
+
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+
+            dragging = true
+            dragStart = input.Position
+            startPosition = object.Position
+
+            input.Changed:Connect(function()
+
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+
+            end)
+        end
+    end)
+
+    UIS.InputChanged:Connect(function(input)
+
+        if dragging then
+
+            if input.UserInputType == Enum.UserInputType.MouseMovement
+            or input.UserInputType == Enum.UserInputType.Touch then
+
+                local delta = input.Position - dragStart
+
+                object.Position = UDim2.new(
+                    startPosition.X.Scale,
+                    startPosition.X.Offset + delta.X,
+                    startPosition.Y.Scale,
+                    startPosition.Y.Offset + delta.Y
+                )
+
+            end
+        end
+    end)
+end
+
+--==================================================
+-- AUTO FARM BUTTON
+--==================================================
 
 local Button = Instance.new("TextButton")
 Button.Name = "AutoFarmToggle"
-Button.Size = UDim2.new(0, 165, 0, 45)
+Button.Size = UDim2.new(0, 175, 0, 45)
 Button.Position = UDim2.new(0, 20, 0.5, 0)
-Button.BackgroundColor3 = Color3.fromRGB(40, 180, 90)
-Button.TextColor3 = Color3.new(1, 1, 1)
+Button.BackgroundColor3 = Purple
+Button.TextColor3 = White
 Button.TextSize = 15
 Button.Font = Enum.Font.GothamBold
 Button.Text = "AUTO FARM : ON"
 Button.Parent = ScreenGui
 
-local Corner = Instance.new("UICorner")
-Corner.CornerRadius = UDim.new(0, 9)
-Corner.Parent = Button
+Instance.new("UICorner", Button).CornerRadius =
+    UDim.new(0, 10)
 
-local Stroke = Instance.new("UIStroke")
-Stroke.Color = Color3.new(1, 1, 1)
-Stroke.Transparency = 0.6
-Stroke.Parent = Button
+local ButtonStroke = Instance.new("UIStroke")
+ButtonStroke.Color = LightPurple
+ButtonStroke.Transparency = 0.2
+ButtonStroke.Parent = Button
 
-ScreenGui.Parent = player:WaitForChild("PlayerGui")
+makeDraggable(Button)
 
 --==================================================
--- STATUS
+-- INFORMATION PANEL
 --==================================================
 
-local status = Drawing.new("Text")
+local Panel = Instance.new("Frame")
+Panel.Name = "InformationPanel"
+Panel.Size = UDim2.new(0, 235, 0, 180)
+Panel.Position = UDim2.new(0, 20, 0.5, 60)
+Panel.BackgroundColor3 = DarkPurple
+Panel.BorderSizePixel = 0
+Panel.Parent = ScreenGui
 
-status.Text =
-    "Discord: discord.gg/aBq4NTkMyP\nStatus: Finding candy..."
+Instance.new("UICorner", Panel).CornerRadius =
+    UDim.new(0, 12)
 
-status.Size = 18
-status.Center = true
-status.Outline = true
-status.Color = Color3.fromRGB(255, 255, 255)
-status.Position = Vector2.new(camera.ViewportSize.X / 2, 35)
-status.Visible = true
+local PanelStroke = Instance.new("UIStroke")
+PanelStroke.Color = LightPurple
+PanelStroke.Thickness = 1.5
+PanelStroke.Parent = Panel
 
-local function setStatus(message)
-    status.Text =
-        "Discord: discord.gg/aBq4NTkMyP\nStatus: " .. message
+-- HEADER
+
+local Header = Instance.new("TextLabel")
+Header.Size = UDim2.new(1, 0, 0, 32)
+Header.BackgroundColor3 = Purple
+Header.Text = "HALLOWEEN FARM V3"
+Header.TextColor3 = White
+Header.Font = Enum.Font.GothamBold
+Header.TextSize = 14
+Header.Parent = Panel
+
+Instance.new("UICorner", Header).CornerRadius =
+    UDim.new(0, 10)
+
+makeDraggable(Panel, Header)
+
+-- CREDIT
+
+local Credit = Instance.new("TextLabel")
+Credit.Size = UDim2.new(1, 0, 0, 18)
+Credit.Position = UDim2.new(0, 0, 0, 32)
+Credit.BackgroundTransparency = 1
+Credit.Text = "by: sarry_fixe"
+Credit.TextColor3 = LightPurple
+Credit.Font = Enum.Font.GothamBold
+Credit.TextSize = 11
+Credit.Parent = Panel
+
+-- INFO LABEL FUNCTION
+
+local function createLabel(name, text, position)
+
+    local label = Instance.new("TextLabel")
+    label.Name = name
+    label.Size = UDim2.new(1, -20, 0, 25)
+    label.Position = position
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = White
+    label.Font = Enum.Font.GothamMedium
+    label.TextSize = 12
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = Panel
+
+    return label
 end
 
-RunService.RenderStepped:Connect(function()
-    camera = workspace.CurrentCamera
+local CandyLabel = createLabel(
+    "CandyCount",
+    "Candy Collected : 0",
+    UDim2.new(0, 10, 0, 53)
+)
 
-    if camera then
-        status.Position = Vector2.new(
-            camera.ViewportSize.X / 2,
-            35
-        )
+local TimeLabel = createLabel(
+    "Uptime",
+    "Time : 00:00:00",
+    UDim2.new(0, 10, 0, 80)
+)
+
+local StatusLabel = createLabel(
+    "Status",
+    "Status : Running",
+    UDim2.new(0, 10, 0, 107)
+)
+
+local DiscordLabel = createLabel(
+    "Discord",
+    "Discord: discord.gg/aBq4NTkMyP",
+    UDim2.new(0, 10, 0, 137)
+)
+
+DiscordLabel.TextSize = 10
+DiscordLabel.TextColor3 = LightPurple
+
+--==================================================
+-- UPDATE INFORMATION
+--==================================================
+
+local function formatTime(seconds)
+
+    local hours = math.floor(seconds / 3600)
+    local minutes = math.floor(seconds % 3600 / 60)
+    local secs = math.floor(seconds % 60)
+
+    return string.format(
+        "%02d:%02d:%02d",
+        hours,
+        minutes,
+        secs
+    )
+end
+
+local CurrentStatus = "Finding candy..."
+
+local function setStatus(message)
+
+    CurrentStatus = message
+    StatusLabel.Text = "Status : " .. message
+
+end
+
+task.spawn(function()
+
+    while ScreenGui.Parent do
+
+        CandyLabel.Text =
+            "Candy Collected : " .. CandyCount
+
+        TimeLabel.Text =
+            "Time : " .. formatTime(os.clock() - StartTime)
+
+        task.wait(0.5)
+
     end
+
 end)
 
 --==================================================
@@ -699,28 +876,29 @@ Button.MouseButton1Click:Connect(function()
     if AutoFarmEnabled then
 
         Button.Text = "AUTO FARM : ON"
-        Button.BackgroundColor3 =
-            Color3.fromRGB(40, 180, 90)
+        Button.BackgroundColor3 = Color3.fromRGB(40, 180, 90)
 
         setStatus("Finding candy...")
 
     else
 
         Button.Text = "AUTO FARM : OFF"
-        Button.BackgroundColor3 =
-            Color3.fromRGB(200, 55, 55)
+        Button.BackgroundColor3 = Color3.fromRGB(200, 55, 55)
 
-        setStatus("Auto Farm Disabled")
+        setStatus("Disabled")
 
     end
+
 end)
 
 --==================================================
--- DETECT NEW CANDY
+-- COUNT COLLECTED CANDY
 --==================================================
 
-folder.ChildAdded:Connect(function()
-    CandySpawned = true
+folder.ChildRemoved:Connect(function()
+
+    CandyCount = CandyCount + 1
+
 end)
 
 --==================================================
@@ -785,6 +963,7 @@ local function findClosestCandy(root)
                 closestPosition = position
 
             end
+
         end
     end
 
@@ -836,6 +1015,7 @@ local function findClosestDoor(root)
                     closestPart = part
 
                 end
+
             end
         end
     end
@@ -891,9 +1071,7 @@ while task.wait(ScanDelay) do
 
     if candy and candyPosition then
 
-        CandySpawned = false
-
-        setStatus("Candy detected! Collecting...")
+        setStatus("Collecting candy...")
 
         root.CFrame = CFrame.new(
             candyPosition + Vector3.new(0, 4, 0)
@@ -946,13 +1124,13 @@ while task.wait(ScanDelay) do
     end
 
 end
-
+    
 end) 
 
-CreateTab("Trang chủ", 1)
-CreateTab("Chung", 2)
-CreateTab("TSB", 3)
-CreateTab("Cài đặt", 4)
+CreateTab("Trang chủ", 1
+CreateTab("Chung", 2
+CreateTab("TSB",3
+CreateTab("cài đạt",4
 
 local function SwitchTab(name)
     for pageName, page in pairs(Pages) do
