@@ -1126,6 +1126,148 @@ while task.wait(ScanDelay) do
 end
     
 end) 
+ 
+--==================================================
+-- HALLOWEEN ESP
+-- DOOR + TEDDY SEPARATE TOGGLES
+--==================================================
+
+local ESPCard = MakeCard(FunctionPage, 125)
+
+local ESPTitle = Label(
+    ESPCard,
+    "ESP HALLOWEEN",
+    UDim2.new(1, -20, 0, 25),
+    UDim2.fromOffset(12, 8),
+    15
+)
+ESPTitle.TextColor3 = PURPLE
+
+local DoorEnabled = false
+local TeddyEnabled = false
+
+local DoorHighlights = {}
+local TeddyHighlights = {}
+
+local DoorButton = Button(
+    ESPCard,
+    "ESP CUA: OFF",
+    UDim2.fromOffset(145, 32),
+    UDim2.fromOffset(12, 43)
+)
+
+local TeddyButton = Button(
+    ESPCard,
+    "ESP TEDDY: OFF",
+    UDim2.fromOffset(145, 32),
+    UDim2.fromOffset(170, 43)
+)
+
+local function GetTarget(obj)
+    if obj:IsA("Model") then
+        return obj
+    elseif obj:IsA("BasePart") then
+        return obj:FindFirstAncestorOfClass("Model") or obj
+    end
+end
+
+local function AddHighlight(target, color, storage)
+    if not target or storage[target] then return end
+
+    local h = Instance.new("Highlight")
+    h.Adornee = target
+    h.FillTransparency = 1
+    h.OutlineTransparency = 0
+    h.OutlineColor = color
+    h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    h.Parent = target
+
+    storage[target] = h
+end
+
+local function ClearHighlights(storage)
+    for target, h in pairs(storage) do
+        if h then h:Destroy() end
+    end
+
+    table.clear(storage)
+end
+
+local ORANGE = Color3.fromRGB(255, 135, 25)
+local YELLOW = Color3.fromRGB(255, 235, 0)
+
+local function ScanDoors()
+    local folder = workspace:FindFirstChild("HalloweenDoorTrees")
+
+    if folder then
+        for _, obj in ipairs(folder:GetDescendants()) do
+            if obj:IsA("Model") or obj:IsA("BasePart") then
+                AddHighlight(GetTarget(obj), ORANGE, DoorHighlights)
+            end
+        end
+    end
+end
+
+local function ScanTeddy()
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        local name = string.lower(obj.Name)
+
+        if name:find("teddy")
+            or name:find("bear")
+            or name:find("doll") then
+
+            AddHighlight(
+                GetTarget(obj),
+                YELLOW,
+                TeddyHighlights
+            )
+        end
+    end
+end
+
+DoorButton.MouseButton1Click:Connect(function()
+    DoorEnabled = not DoorEnabled
+
+    DoorButton.Text = DoorEnabled
+        and "ESP CUA: ON"
+        or "ESP CUA: OFF"
+
+    DoorButton.BackgroundColor3 =
+        DoorEnabled and DARK_PURPLE or CARD
+
+    if not DoorEnabled then
+        ClearHighlights(DoorHighlights)
+    else
+        task.spawn(function()
+            while DoorEnabled do
+                ScanDoors()
+                task.wait(1)
+            end
+        end)
+    end
+end)
+
+TeddyButton.MouseButton1Click:Connect(function()
+    TeddyEnabled = not TeddyEnabled
+
+    TeddyButton.Text = TeddyEnabled
+        and "ESP TEDDY: ON"
+        or "ESP TEDDY: OFF"
+
+    TeddyButton.BackgroundColor3 =
+        TeddyEnabled and DARK_PURPLE or CARD
+
+    if not TeddyEnabled then
+        ClearHighlights(TeddyHighlights)
+    else
+        task.spawn(function()
+            while TeddyEnabled do
+                ScanTeddy()
+                task.wait(1)
+            end
+        end)
+    end
+end)
 
 CreateTab("Trang chủ", 1)
 CreateTab("Chung", 2)
