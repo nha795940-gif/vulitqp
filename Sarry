@@ -1226,141 +1226,127 @@ end)
  
 --==================================================
 -- HALLOWEEN ESP
--- DOOR + TEDDY SEPARATE TOGGLES
+-- by sarry_fixe
+-- TREE: ORANGE
+-- BABY PENYTA: YELLOW
 --==================================================
 
-local ESPCard = MakeCard(FunctionPage, 125)
+local Workspace = game:GetService("Workspace")
 
-local ESPTitle = Label(
-    ESPCard,
-    "ESP HALLOWEEN",
-    UDim2.new(1, -20, 0, 25),
-    UDim2.fromOffset(12, 8),
-    15
-)
-ESPTitle.TextColor3 = PURPLE
+local TreeFolder = Workspace:WaitForChild("HalloweenDoorTrees")
 
-local DoorEnabled = false
-local TeddyEnabled = false
+local TreeESPEnabled = false
+local PenytaESPEnabled = false
 
-local DoorHighlights = {}
-local TeddyHighlights = {}
+local TreeHighlights = {}
+local PenytaHighlights = {}
 
-local DoorButton = Button(
-    ESPCard,
-    "ESP CUA: OFF",
-    UDim2.fromOffset(145, 32),
-    UDim2.fromOffset(12, 43)
-)
+-- CREATE HIGHLIGHT
 
-local TeddyButton = Button(
-    ESPCard,
-    "ESP TEDDY: OFF",
-    UDim2.fromOffset(145, 32),
-    UDim2.fromOffset(170, 43)
-)
+local function CreateESP(obj, color, storage)
 
-local function GetTarget(obj)
-    if obj:IsA("Model") then
-        return obj
-    elseif obj:IsA("BasePart") then
-        return obj:FindFirstAncestorOfClass("Model") or obj
-    end
-end
-
-local function AddHighlight(target, color, storage)
-    if not target or storage[target] then return end
-
-    local h = Instance.new("Highlight")
-    h.Adornee = target
-    h.FillTransparency = 1
-    h.OutlineTransparency = 0
-    h.OutlineColor = color
-    h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-    h.Parent = target
-
-    storage[target] = h
-end
-
-local function ClearHighlights(storage)
-    for target, h in pairs(storage) do
-        if h then h:Destroy() end
+    if not obj or not (obj:IsA("Model") or obj:IsA("BasePart")) then
+        return
     end
 
-    table.clear(storage)
+    if storage[obj] then
+        return
+    end
+
+    local highlight = Instance.new("Highlight")
+    highlight.Adornee = obj
+    highlight.FillTransparency = 1
+    highlight.OutlineTransparency = 0
+    highlight.OutlineColor = color
+    highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    highlight.Parent = game:GetService("CoreGui")
+
+    storage[obj] = highlight
 end
 
-local ORANGE = Color3.fromRGB(255, 135, 25)
-local YELLOW = Color3.fromRGB(255, 235, 0)
+-- REMOVE ESP
 
-local function ScanDoors()
-    local folder = workspace:FindFirstChild("HalloweenDoorTrees")
+local function ClearESP(storage)
 
-    if folder then
-        for _, obj in ipairs(folder:GetDescendants()) do
-            if obj:IsA("Model") or obj:IsA("BasePart") then
-                AddHighlight(GetTarget(obj), ORANGE, DoorHighlights)
-            end
+    for obj, highlight in pairs(storage) do
+        if highlight then
+            highlight:Destroy()
         end
+        storage[obj] = nil
     end
 end
 
-local function ScanTeddy()
-    for _, obj in ipairs(workspace:GetDescendants()) do
+-- ESP TREE ORANGE
+
+local function ScanTrees()
+
+    for _, obj in ipairs(TreeFolder:GetChildren()) do
+
+        if obj:IsA("Model") or obj:IsA("BasePart") then
+            CreateESP(
+                obj,
+                Color3.fromRGB(255, 130, 0),
+                TreeHighlights
+            )
+        end
+
+    end
+end
+
+-- ESP BABY PENYTA YELLOW
+
+local function ScanPenyta()
+
+    for _, obj in ipairs(Workspace:GetDescendants()) do
+
         local name = string.lower(obj.Name)
 
         if name:find("penyta") then
-            AddHighlight(
-                obj,
-                TeddyHighlights,
-                Color3.fromRGB(255, 255, 0)
-            )
+
+            if obj:IsA("Model") or obj:IsA("BasePart") then
+                CreateESP(
+                    obj,
+                    Color3.fromRGB(255, 255, 0),
+                    PenytaHighlights
+                )
+            end
+
         end
     end
 end
 
-DoorButton.MouseButton1Click:Connect(function()
-    DoorEnabled = not DoorEnabled
+-- TREE LOOP
 
-    DoorButton.Text = DoorEnabled
-        and "ESP CUA: ON"
-        or "ESP CUA: OFF"
+task.spawn(function()
 
-    DoorButton.BackgroundColor3 =
-        DoorEnabled and DARK_PURPLE or CARD
+    while task.wait(1) do
 
-    if not DoorEnabled then
-        ClearHighlights(DoorHighlights)
-    else
-        task.spawn(function()
-            while DoorEnabled do
-                ScanDoors()
-                task.wait(1)
-            end
-        end)
+        if TreeESPEnabled then
+            ScanTrees()
+        else
+            ClearESP(TreeHighlights)
+        end
+
     end
+
 end)
 
-TeddyButton.MouseButton1Click:Connect(function()
-    TeddyEnabled = not TeddyEnabled
+-- PENYTA LOOP
 
-    TeddyButton.Text = TeddyEnabled
-        and "ESP TEDDY: ON"
-        or "ESP TEDDY: OFF"
+task.spawn(function()
 
-    TeddyButton.BackgroundColor3 =
-        TeddyEnabled and DARK_PURPLE or CARD
+    while task.wait(1) do
 
-    if not TeddyEnabled then
-        ClearHighlights(TeddyHighlights)
-    else
-        task.spawn(function()
-            while TeddyEnabled do
-                ScanTeddy()
-                task.wait(1)
-            end
-        end)
+        if PenytaESPEnabled then
+            ScanPenyta()
+        else
+            ClearESP(PenytaHighlights)
+        end
+
     end
+
+end)
+
 end)
 
 CreateTab("Trang chủ", 1)
